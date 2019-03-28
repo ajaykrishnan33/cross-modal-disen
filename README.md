@@ -82,11 +82,15 @@
 		- L_z_i --> Discriminator loss for differentiating E_i from random noise from N(0,1)
 		- L_z_t --> Discriminator loss for differentiating E_t from random noise from N(0,1)
 		- TotalLoss = (L_ganI + L_ganT) + (L_ganE_i + L_ganE_t) + (L_z_i + L_z_t) + (L_s + L_autoI + L_autoT + L_reconI + L_reconT)
-	- Questions:
-		- Should we get rid of L_autoI and L_autoT losses and replace them with GAN losses?
 
 ## Links:
 [Image-to-image translation for cross-domain disentanglement](http://papers.nips.cc/paper/7404-image-to-image-translation-for-cross-domain-disentanglement.pdf)
+
+## Questions:
+	- Should I get rid of L_autoI and L_autoT losses and replace them with GAN losses?
+	- Should I use pre-trained models for initial features?
+	- How about using Inception modules and residual connections?
+	- Should I replace CNN decoder for text with GRU or LSTM? What about for the text encoder? 
 
 ## Todos:
 	[] Changes to the build_mscoco_data.py script as marked by the "\#TODO:" prefix
