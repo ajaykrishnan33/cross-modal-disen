@@ -3,7 +3,7 @@
 ## Overview:
 	- The aim is to build a neural network that can take as input either an image or some text, and encode into a representation that has two parts - a shared part (that represents the core modality-independent information in the input) and an exclusive part (that represents the modality-specific information in the input). 
 	- The shared representation can then be used for cross-modal retrieval of data; ie., given an image, finding relevant text from the database that matches the image and given some text, finding relevant images from the database that matches the text.
-	- The neural network model closely follows the model used in the paper [Image-to-image translation for cross-domain disentanglement](http://papers.nips.cc/paper/7404-image-to-image-translation-for-cross-domain-disentanglement.pdf). Where necessary, the model has been adapted for the image-text scenario (whereas the paper presents the image-image scenario).
+	- The neural network model closely follows the model used in the cross domain entanglement paper. Where necessary, the model has been adapted for the image-text scenario (whereas the paper presents the image-image scenario).
 
 ## Dataset:
 	- MS-COCO Dataset with Image Caption annotations. Every image has 5 captions in the dataset.
@@ -84,6 +84,9 @@
 		- TotalLoss = (L_ganI + L_ganT) + (L_ganE_i + L_ganE_t) + (L_z_i + L_z_t) + (L_s + L_autoI + L_autoT + L_reconI + L_reconT)
 	- Questions:
 		- Should we get rid of L_autoI and L_autoT losses and replace them with GAN losses?
+
+## Links:
+[Image-to-image translation for cross-domain disentanglement](http://papers.nips.cc/paper/7404-image-to-image-translation-for-cross-domain-disentanglement.pdf)
 
 ## Todos:
 	[] Changes to the build_mscoco_data.py script as marked by the "\#TODO:" prefix
