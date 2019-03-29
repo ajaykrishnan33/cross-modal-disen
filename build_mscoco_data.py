@@ -211,7 +211,7 @@ def _to_sequence_example(image, decoder, vocab):
     Returns:
       A SequenceExample proto.
     """
-    with tf.gfile.FastGFile(image.filename, "r") as f:
+    with tf.gfile.FastGFile(image.filename, "rb") as f:
         encoded_image = f.read()
 
     try:
@@ -413,7 +413,7 @@ def _load_and_process_metadata(captions_file, image_dir):
     Returns:
       A list of ImageMetadata.
     """
-    with tf.gfile.FastGFile(captions_file, "r") as f:
+    with tf.gfile.FastGFile(captions_file, "rb") as f:
         caption_data = json.load(f)
 
     # Extract the filenames.
