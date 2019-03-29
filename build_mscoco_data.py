@@ -187,7 +187,7 @@ def _int64_feature(value):
 
 def _bytes_feature(value):
     """Wrapper for inserting a bytes Feature into a SequenceExample proto."""
-    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[str(value)]))
 
 
 def _int64_feature_list(values):
@@ -413,7 +413,7 @@ def _load_and_process_metadata(captions_file, image_dir):
     Returns:
       A list of ImageMetadata.
     """
-    with tf.gfile.FastGFile(captions_file, "rb") as f:
+    with tf.gfile.FastGFile(captions_file, "r") as f:
         caption_data = json.load(f)
 
     # Extract the filenames.
