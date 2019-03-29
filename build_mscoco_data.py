@@ -221,6 +221,7 @@ def _to_sequence_example(image, decoder, vocab):
         return
 
     #TODO: Perform some image pre-processing here? - like resizing/normalizing etc.
+    # Can be handled in the network code later.
 
     context = tf.train.Features(feature={
         "image/image_id": _int64_feature(image.image_id),
@@ -376,6 +377,7 @@ def _create_vocab(captions):
     print("Wrote vocabulary file:", FLAGS.word_counts_output_file)
 
     #TODO: Add padding character to vocabulary?
+    # Not needed? Just pad with zeros till max_length
 
     # Create the vocabulary dictionary.
     reverse_vocab = [x[0] for x in word_counts]
