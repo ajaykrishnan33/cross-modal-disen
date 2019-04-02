@@ -12,10 +12,14 @@ import time
 from ops import *
 import config
 
-def create_image_discriminator(discrim_targets, n_layers=3):
+def create_text_discriminator(discrim_targets, n_layers=3):
     layers = []
 
-    # layer_1: [batch, 256, 256, in_channels] => [batch, 128, 128, ndf]
+    """
+    PENDING !!!!!!!!!!!!!!!!!!
+    """
+
+    # layer_1: [batch, max_length, vocab] => [batch, max_length, wrl]
     with tf.variable_scope("layer_1"):
         convolved = discrim_conv2d(discrim_targets, config.ndf, stride=2)
         rectified = lrelu(convolved, 0.2)
