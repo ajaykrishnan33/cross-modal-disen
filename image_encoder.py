@@ -8,7 +8,7 @@ def create_image_encoder(image):
 
     # encoder_1: [batch, 256, 256, in_channels] => [batch, 128, 128, ngfI]
     with tf.variable_scope("encoder_conv1"):
-       output = gen_conv2d(image, config.ngfI, config)
+       output = gen_conv2d(image, config.ngfI)
        layers.append(output)
 
     conv_layer_specs = [
@@ -31,29 +31,29 @@ def create_image_encoder(image):
     with tf.variable_scope("encoder_shared_fc1"):
         rectified = lrelu(layers[-1], 0.2)
         fc1_input = tf.reshape(rectified, [-1, 4*4*8*config.ngfI])
-        fc1_output = gen_fc(fc1_input, out_channels=4096)
+        fc1_output = gen_fc(fc1_input, out_channels=1024) #4096
         fc1_bn = batchnorm(fc1_output, axis=1)
 
-    with tf.variable_scope("encoder_shared_fc2"):
-        rectified = lrelu(fc1_bn, 0.2)
-        fc2_output = gen_fc(rectified, out_channels=1024)
-        fc2_bn = batchnorm(fc2_output, axis=1)
+    # with tf.variable_scope("encoder_shared_fc2"):
+    #     rectified = lrelu(fc1_bn, 0.2)
+    #     fc2_output = gen_fc(rectified, out_channels=1024)
+    #     fc2_bn = batchnorm(fc2_output, axis=1)
 
     # Exclusive part of the representation
     with tf.variable_scope("encoder_exclusive_fc1"):
         rectified = lrelu(layers[-1], 0.2)
         efc1_input = tf.reshape(rectified, [-1, 4*4*8*config.ngfI])
-        efc1_output = gen_fc(efc1_input, out_channels=4096)
+        efc1_output = gen_fc(efc1_input, out_channels=256) #4096
         efc1_bn = batchnorm(efc1_output, axis=1)
 
-    with tf.variable_scope("encoder_exclusive_fc2"):
-        rectified = lrelu(efc1_bn, 0.2)
-        efc2_output = gen_fc(rectified, out_channels=256)
-        efc2_bn = batchnorm(efc2_output, axis=1)
+    # with tf.variable_scope("encoder_exclusive_fc2"):
+    #     rectified = lrelu(efc1_bn, 0.2)
+    #     efc2_output = gen_fc(rectified, out_channels=256)
+    #     efc2_bn = batchnorm(efc2_output, axis=1)
 
 
-    sR = fc2_bn
-    eR = efc2_bn
+    sR = fc1_bn #fc2_bn
+    eR = efc1_bn #efc2_bn
 
 
     return sR, eR
