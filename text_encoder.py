@@ -3,15 +3,9 @@ import config
 
 from ops import *
 
-def create_text_encoder(text):
+def create_text_encoder(encoded_text):
 
-    # text: [batch, max_length]
-
-    # encoder_embedding: [batch, max_length] => [batch, max_length, wrl]
-    with tf.variable_scope("encoder_embedding"):
-        z = tf.reshape(text, [-1, config.vocab_size])
-        encoded_text = gen_embedder(z, config.vocab_size, config.wrl, config.max_length)
-        encoded_text = tf.reshape(encoded_text, [-1, config.max_length, config.wrl])
+    # encoded_text: [batch, max_length, wrl]
 
     layers = []
     # encoder_1: [batch, max_length, wrl] => [batch, max_length/2, wrl*2]

@@ -56,12 +56,25 @@ def gen_deconv2d(batch_input, out_channels, kernel_size=4, strides=(2,2)):
         kernel_initializer=initializer
     )
 
-def discrim_conv2d(batch_input, out_channels, stride):
-    padded_input = tf.pad(batch_input, [[0, 0], [1, 1], [1, 1], [0, 0]], mode="CONSTANT")
+def discrim_conv2d(batch_input, out_channels, kernel_size=4, strides=(2,2)):
+    # [batch, in_height, in_width, in_channels] => [batch, out_height, out_width, out_channels]
+    initializer = tf.random_normal_initializer(0, 0.02)
     return tf.layers.conv2d(
-        padded_input, out_channels, kernel_size=4, strides=(stride, stride), 
-        padding="valid", kernel_initializer=tf.random_normal_initializer(0, 0.02)
+        batch_input, out_channels, kernel_size=kernel_size, strides=strides, padding="same", 
+        kernel_initializer=initializer
     )
+
+def discrim_conv1d(batch_input, out_channels, kernel_size=4, stride=2, padding="same"):
+    # [batch, in_width, in_channels] => [batch, out_width, out_channels]
+    initializer = tf.random_normal_initializer(0, 0.02)
+    return tf.layers.conv1d(
+        batch_input, out_channels, kernel_size=kernel_size, strides=stride, padding=padding, 
+        kernel_initializer=initializer
+    )
+
+def discrim_fc(batch_input, out_channels=1):
+    # With no initializer argument, it uses glorot
+    return tf.layers.dense(batch_input, out_channels)
 
 def gen_embedder(batch_input, vocab_size, out_channels, max_length):
     embedder = tf.keras.layers.Embedding(
@@ -70,3 +83,25 @@ def gen_embedder(batch_input, vocab_size, out_channels, max_length):
     )
 
     return embedder(batch_input)
+
+def create_text_embedder(text):
+    # text: [batch, max_length, vocab_size]
+
+    # encoder_embedding: [batch, max_length, vocab_size] => [batch, max_length, wrl]
+    with tf.name_scope("text_embedding", values=[text])
+        with tf.variable_scope("text_embedding", values=[text]):
+            z = tf.reshape(text, [-1, config.vocab_size])
+            encoded_text = gen_embedder(z, config.vocab_size, config.wrl, config.max_length)
+            encoded_text = tf.reshape(encoded_text, [-1, config.max_length, config.wrl])
+
+    return encoded_text
+
+def create_text_deembedder(text):
+    # text_deembedding: [batch, max_length, wrl] => [batch, max_length, vocab_size]
+    with tf.name_scope("text_deembedding", values=[text]):
+        with tf.variable_scope("text_deembedding", values=[text]):
+            z = tf.reshape(text, [-1, config.wrl])
+            decoded_text = gen_fc(z, config.vocab_size)
+            decoded_text = tf.reshape(decoded_text, [-1, config.max_length, config.vocab_size])
+
+    return decoded_text

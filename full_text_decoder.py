@@ -95,10 +95,4 @@ def create_full_text_decoder(sR, eR, generator_outputs_channels, noise = True):
         output = tf.tanh(output)
         layers.append(output)
 
-    # encoder_embedding: [batch, max_length] => [batch, max_length, wrl]
-    with tf.variable_scope("decoder_embedding"):
-        z = tf.reshape(text, [-1, config.wrl])
-        decoded_text = gen_fc(z, config.vocab_size)
-        decoded_text = tf.reshape(decoded_text, [-1, config.max_length, config.vocab_size])
-
-    return decoded_text
+    return layers[-1]
