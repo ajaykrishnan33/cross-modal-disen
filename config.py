@@ -2,13 +2,12 @@ import argparse
 import sys
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--input_dir", help="path to folder containing images and text")
+parser.add_argument("--input_dir", required=True, help="path to folder containing images and text")
 # Added features mode to extract features for retrieval
 parser.add_argument("--mode", required=True, choices=["train", "test", "features"])
 parser.add_argument("--output_dir", required=True, help="where to put output files")
 parser.add_argument("--seed", type=int)
 parser.add_argument("--checkpoint", default=None, help="directory with checkpoint to resume training from or use for testing")
-
 parser.add_argument("--max_steps", type=int, help="number of training steps (0 to disable)")
 parser.add_argument("--max_epochs", type=int, help="number of training epochs")
 parser.add_argument("--summary_freq", type=int, default=30, help="update summaries every summary_freq steps")
@@ -22,7 +21,8 @@ parser.add_argument("--aspect_ratio", type=float, default=1.0, help="aspect rati
 # parser.add_argument("--lab_colorization", action="store_true", help="split input image into brightness (A) and color (B)")
 parser.add_argument("--batch_size", type=int, default=8, help="number of images in batch")
 parser.add_argument("--which_direction", type=str, default="AtoB", choices=["AtoB", "BtoA"])
-parser.add_argument("--ngf", type=int, default=64, help="number of generator filters in first conv layer")
+parser.add_argument("--ngfI", type=int, default=64, help="number of generator filters in first conv layer")
+parser.add_argument("--max_length", type=int, default=32, help="max number of words in the caption")
 parser.add_argument("--ndf", type=int, default=64, help="number of discriminator filters in first conv layer")
 parser.add_argument("--scale_size", type=int, default=256, help="scale images to this size before cropping to 256x256")
 parser.add_argument("--flip", dest="flip", action="store_true", help="flip images horizontally")
@@ -45,24 +45,24 @@ class Config:
     def __init__(self):
         self.a = parser.parse_args()
 
+        self.image_size = 256
+
+        self.img_output_dim = self.image_size*self.image_size*3 # 256x256x3
+
+        self.text_size = (self.max_length, self.wrl)
+
+        self.txt_output_dim = self.text_size[0] * self.text_size[1]
+
     def __getattr__(self, name):
-        if name=="a":
-            return a
+        if hasattr(self, name):
+            return super().__getattr__(name)
         else:
-            return getattr(a, name)
+            return getattr(self.a, name)
     
 
 sys.modules[__name__] = Config()
 
 # input_dir = "/home/ubuntu/everything/mscoco/output_dir"
-
-# batch_size = 64
-
-# image_height = 256
-# image_width = 256
-
-# ngfI = 64
-# ngfT = 64
 
 # exclusive_size = 128
 

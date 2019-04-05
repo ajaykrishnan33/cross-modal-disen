@@ -9,7 +9,7 @@ class MSCOCODataset:
         img = tf.image.decode_jpeg(encoded_image, channels=3)
         img = tf.image.convert_image_dtype(img, dtype=tf.float32)
         img = tf.image.resize_images(
-            img, size=[config.image_height, config.image_width], method=tf.image.ResizeMethod.BILINEAR
+            img, size=[config.image_size, config.image_size], method=tf.image.ResizeMethod.BILINEAR
         )
 
         # range: [0,1] ==> [-1,+1]
@@ -61,3 +61,10 @@ class MSCOCODataset:
 
     def next_batch(self):
         return self.dataset.make_one_shot_iterator().get_next()
+
+if __name__ == "__main__":
+    x = MSCOCODataset(config.mode).next_batch()
+    print(x)
+    sess = tf.Session()
+    y = sess.run(x)
+    print(y)
