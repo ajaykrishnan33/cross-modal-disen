@@ -49,12 +49,14 @@ class Config:
 
         self.img_output_dim = self.image_size*self.image_size*3 # 256x256x3
 
+        self.wrl = 256
+
         self.text_size = (self.max_length, self.wrl)
 
         self.txt_output_dim = self.text_size[0] * self.text_size[1]
 
     def __getattr__(self, name):
-        if hasattr(self, name):
+        if hasattr(super(), name):
             return super().__getattr__(name)
         else:
             return getattr(self.a, name)
