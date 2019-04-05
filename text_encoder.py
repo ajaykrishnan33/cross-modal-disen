@@ -3,23 +3,23 @@ import config
 
 from ops import *
 
-def create_text_encoder(encoded_text):
+def create_text_encoder(embedded_text):
 
-    # encoded_text: [batch, max_length, wrl]
+    # encoded_text: [batch, max_length, config.wrl]
 
     layers = []
-    # encoder_1: [batch, max_length, wrl] => [batch, max_length/2, wrl*2]
+    # encoder_1: [batch, max_length, config.wrl] => [batch, max_length/2, config.wrl*2]
     with tf.variable_scope("encoder_conv1"):
-       output = gen_conv1d(encoded_text, config.wrl*2)
+       output = gen_conv1d(embedded_text, config.wrl*2)
        layers.append(output)
 
     # max_length = 32
-    # wrl = 256
+    # config.wrl = 256
     conv_layer_specs = [
-        (config.wrl * 4, 4, 2, "same"), # encoder_2: [batch, max_length/2, wrl*2] => [batch, max_length/4, wrl*4]
-        (config.wrl * 8, 4, 2, "same"), # encoder_3: [batch, max_length/4, wrl*4] => [batch, max_length/8, wrl*8]
-        (config.wrl * 16, 4, 2, "same"), # encoder_4: [batch, max_length/8, wrl*8] => [batch, max_length/16, wrl*16]
-        (config.wrl * 32, 2, 1, "valid"), # encoder_5: [batch, max_length/16, wrl*16] => [batch, max_length/32, wrl*32]
+        (config.wrl * 4, 4, 2, "same"), # encoder_2: [batch, max_length/2, config.wrl*2] => [batch, max_length/4, config.wrl*4]
+        (config.wrl * 8, 4, 2, "same"), # encoder_3: [batch, max_length/4, config.wrl*4] => [batch, max_length/8, config.wrl*8]
+        (config.wrl * 16, 4, 2, "same"), # encoder_4: [batch, max_length/8, config.wrl*8] => [batch, max_length/16, config.wrl*16]
+        (config.wrl * 32, 2, 1, "valid"), # encoder_5: [batch, max_length/16, config.wrl*16] => [batch, max_length/32, config.wrl*32]
     ]
 
     for out_channels, kernel_size, stride, padding in conv_layer_specs:
@@ -33,7 +33,7 @@ def create_text_encoder(encoded_text):
     # Shared part of the representation
     with tf.variable_scope("encoder_shared_fc1"):
         rectified = lrelu(layers[-1], 0.2)
-        fc1_input = tf.reshape(rectified, [-1, wrl*32])
+        fc1_input = tf.reshape(rectified, [-1, config.wrl*32])
         fc1_output = gen_fc(fc1_input, out_channels=1024) #4096
         fc1_bn = batchnorm(fc1_output, axis=1)
 
@@ -45,7 +45,7 @@ def create_text_encoder(encoded_text):
     # Exclusive part of the representation
     with tf.variable_scope("encoder_exclusive_fc1"):
         rectified = lrelu(layers[-1], 0.2)
-        efc1_input = tf.reshape(rectified, [-1, wrl*32])
+        efc1_input = tf.reshape(rectified, [-1, config.wrl*32])
         efc1_output = gen_fc(efc1_input, out_channels=256) #4096
         efc1_bn = batchnorm(efc1_output, axis=1)
 

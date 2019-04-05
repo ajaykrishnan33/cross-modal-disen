@@ -89,19 +89,19 @@ def create_text_embedder(text):
 
     # encoder_embedding: [batch, max_length, vocab_size] => [batch, max_length, wrl]
     with tf.name_scope("text_embedding", values=[text])
-        with tf.variable_scope("text_embedding", values=[text]):
-            z = tf.reshape(text, [-1, config.vocab_size])
-            encoded_text = gen_embedder(z, config.vocab_size, config.wrl, config.max_length)
-            encoded_text = tf.reshape(encoded_text, [-1, config.max_length, config.wrl])
+        z = tf.reshape(text, [-1, config.vocab_size])
+        encoded_text = gen_embedder(z, config.vocab_size, config.wrl, config.max_length)
+        encoded_text = tf.reshape(encoded_text, [-1, config.max_length, config.wrl])
 
     return encoded_text
 
 def create_text_deembedder(text):
     # text_deembedding: [batch, max_length, wrl] => [batch, max_length, vocab_size]
     with tf.name_scope("text_deembedding", values=[text]):
-        with tf.variable_scope("text_deembedding", values=[text]):
-            z = tf.reshape(text, [-1, config.wrl])
-            decoded_text = gen_fc(z, config.vocab_size)
-            decoded_text = tf.reshape(decoded_text, [-1, config.max_length, config.vocab_size])
+        z = tf.reshape(text, [-1, config.wrl])
+        decoded_text = gen_fc(z, config.vocab_size)
+        decoded_text = tf.reshape(decoded_text, [-1, config.max_length, config.vocab_size])
+
+    # no softmax here
 
     return decoded_text

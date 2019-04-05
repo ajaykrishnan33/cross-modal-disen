@@ -12,7 +12,7 @@ import time
 from ops import *
 import config
 
-def create_full_text_decoder(sR, eR, generator_outputs_channels, noise = True):
+def create_full_text_decoder(sR, eR, noise = True):
 
     batch_size = sR.shape[0]
 
@@ -90,7 +90,7 @@ def create_full_text_decoder(sR, eR, generator_outputs_channels, noise = True):
         input = layers[-1]
         rectified = tf.nn.relu(input)
         output = gen_deconv1d(
-            rectified, generator_outputs_channels, out_width=32
+            rectified, config.wrl, out_width=32
         )
         output = tf.tanh(output)
         layers.append(output)

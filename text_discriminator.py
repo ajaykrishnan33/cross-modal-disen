@@ -12,12 +12,12 @@ import time
 from ops import *
 import config
 
-def create_text_discriminator(encoded_text):
+def create_text_discriminator(embeddded_text):
     layers = []
 
     # layer_1: [batch, max_length, wrl] => [batch, max_length/2, wrl*2]
     with tf.variable_scope("layer_conv1"):
-        convolved = discrim_conv1d(encoded_text, config.wrl*2, stride=2)
+        convolved = discrim_conv1d(embedded_text, config.wrl*2, stride=2)
         rectified = lrelu(convolved, 0.2)
         layers.append(rectified)
 

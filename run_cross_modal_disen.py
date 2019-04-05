@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-import argparse
 import os
 import json
 import glob
@@ -14,45 +13,9 @@ from model import create_model
 
 import os
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--input_dir", help="path to folder containing images and text")
-# Added features mode to extract features for retrieval
-parser.add_argument("--mode", required=True, choices=["train", "test", "features"])
-parser.add_argument("--output_dir", required=True, help="where to put output files")
-parser.add_argument("--seed", type=int)
-parser.add_argument("--checkpoint", default=None, help="directory with checkpoint to resume training from or use for testing")
+import config
 
-parser.add_argument("--max_steps", type=int, help="number of training steps (0 to disable)")
-parser.add_argument("--max_epochs", type=int, help="number of training epochs")
-parser.add_argument("--summary_freq", type=int, default=30, help="update summaries every summary_freq steps")
-parser.add_argument("--progress_freq", type=int, default=50, help="display progress every progress_freq steps")
-parser.add_argument("--trace_freq", type=int, default=0, help="trace execution every trace_freq steps")
-parser.add_argument("--display_freq", type=int, default=0, help="write current training images every display_freq steps")
-parser.add_argument("--save_freq", type=int, default=5000, help="save model every save_freq steps, 0 to disable")
-
-parser.add_argument("--separable_conv", action="store_true", help="use separable convolutions in the generator")
-parser.add_argument("--aspect_ratio", type=float, default=1.0, help="aspect ratio of output images (width/height)")
-# parser.add_argument("--lab_colorization", action="store_true", help="split input image into brightness (A) and color (B)")
-parser.add_argument("--batch_size", type=int, default=8, help="number of images in batch")
-parser.add_argument("--which_direction", type=str, default="AtoB", choices=["AtoB", "BtoA"])
-parser.add_argument("--ngf", type=int, default=64, help="number of generator filters in first conv layer")
-parser.add_argument("--ndf", type=int, default=64, help="number of discriminator filters in first conv layer")
-parser.add_argument("--scale_size", type=int, default=256, help="scale images to this size before cropping to 256x256")
-parser.add_argument("--flip", dest="flip", action="store_true", help="flip images horizontally")
-parser.add_argument("--no_flip", dest="flip", action="store_false", help="don't flip images horizontally")
-parser.set_defaults(flip=False)
-parser.add_argument("--lr", type=float, default=0.0002, help="initial learning rate for adam")
-parser.add_argument("--beta1", type=float, default=0.5, help="momentum term of adam")
-parser.add_argument("--l1_weight", type=float, default=100.0, help="weight on L1 term for generator gradient")
-parser.add_argument("--gan_weight", type=float, default=1.0, help="weight on GAN term for generator gradient")
-
-# Cross-modal-disen new arugments
-parser.add_argument("--gan_exclusive_weight", type=float, default=0.1, help="weight on GAN term for exclusive generator gradient")
-parser.add_argument("--noise", type=float, default=0.1, help="Stddev for noise input into representation")
-
-# export options
-parser.add_argument("--output_filetype", default="png", choices=["png", "jpeg"])
-a = parser.parse_args()
+from data_ops import MSCOCODataset
 
 CROP_SIZE = 256
 
@@ -60,83 +23,14 @@ Examples = collections.namedtuple("Examples", "paths, inputsX, inputsY, count, s
 
 
 def load_examples():
-    if a.input_dir is None or not os.path.exists(a.input_dir):
+    if config.input_dir is None or not os.path.exists(config.input_dir):
         raise Exception("input_dir does not exist")
 
-    input_paths = glob.glob(os.path.join(a.input_dir, "*.jpg"))
-    decode = tf.image.decode_jpeg
-    if len(input_paths) == 0:
-        input_paths = glob.glob(os.path.join(a.input_dir, "*.png"))
-        decode = tf.image.decode_png
+    dataset = MSCOCODataset(config.mode)
 
-    if len(input_paths) == 0:
-        raise Exception("input_dir contains no image files")
-
-    def get_name(path):
-        name, _ = os.path.splitext(os.path.basename(path))
-        return name
-
-    # if the image names are numbers, sort by the value rather than asciibetically
-    # having sorted inputs means that the outputs are sorted in test mode
-    if all(get_name(path).isdigit() for path in input_paths):
-        input_paths = sorted(input_paths, key=lambda path: int(get_name(path)))
-    else:
-        input_paths = sorted(input_paths)
-
-    with tf.name_scope("load_images"):
-        path_queue = tf.train.string_input_producer(input_paths, shuffle=a.mode == "train")
-        reader = tf.WholeFileReader()
-        paths, contents = reader.read(path_queue)
-        raw_input = decode(contents)
-        raw_input = tf.image.convert_image_dtype(raw_input, dtype=tf.float32)
-        assertion = tf.assert_equal(tf.shape(raw_input)[2], 3, message="image does not have 3 channels")
-        with tf.control_dependencies([assertion]):
-            raw_input = tf.identity(raw_input)
-
-        raw_input.set_shape([None, None, 3])
-
-        if a.lab_colorization:
-            # load color and brightness from image, no B image exists here
-            lab = rgb_to_lab(raw_input)
-            L_chan, a_chan, b_chan = preprocess_lab(lab)
-            a_images = tf.expand_dims(L_chan, axis=2)
-            b_images = tf.stack([a_chan, b_chan], axis=2)
-        else:
-            # break apart image pair and move to range [-1, 1]
-            width = tf.shape(raw_input)[1] # [height, width, channels]
-            a_images = preprocess(raw_input[:,:width//2,:])
-            b_images = preprocess(raw_input[:,width//2:,:])
-
+    
     # No longer in terms of input/target, but bidirectionally on domains X and Y
     inputsX, inputsY = [a_images, b_images]
-
-    # synchronize seed for image operations so that we do the same operations to both
-    # input and output images
-    seed = random.randint(0, 2**31 - 1)
-    def transform(image):
-        r = image
-        if a.flip:
-            r = tf.image.random_flip_left_right(r, seed=seed)
-
-        # area produces a nice downscaling, but does nearest neighbor for upscaling
-        # assume we're going to be doing downscaling here
-        r = tf.image.resize_images(r, [a.scale_size, a.scale_size], method=tf.image.ResizeMethod.AREA)
-
-        offset = tf.cast(tf.floor(tf.random_uniform([2], 0, a.scale_size - CROP_SIZE + 1, seed=seed)), dtype=tf.int32)
-        if a.scale_size > CROP_SIZE:
-            r = tf.image.crop_to_bounding_box(r, offset[0], offset[1], CROP_SIZE, CROP_SIZE)
-        elif a.scale_size < CROP_SIZE:
-            raise Exception("scale size cannot be less than crop size")
-        return r
-
-    with tf.name_scope("inputX_images"):
-        inputX_images = transform(inputsX)
-
-    with tf.name_scope("inputY_images"):
-        inputY_images = transform(inputsY)
-
-    paths_batch, inputsX_batch, inputsY_batch = tf.train.batch([paths,inputX_images,inputY_images], batch_size=a.batch_size)
-    steps_per_epoch = int(math.ceil(len(input_paths) / a.batch_size))
 
     return Examples(
         paths=paths_batch,
@@ -147,7 +41,7 @@ def load_examples():
     )
 
 def save_images(fetches, step=None):
-    image_dir = os.path.join(a.output_dir, "images")
+    image_dir = os.path.join(config.output_dir, "images")
     if not os.path.exists(image_dir):
         os.makedirs(image_dir)
 
@@ -173,7 +67,7 @@ def save_images(fetches, step=None):
 
 
 def save_features(fetches, step=None):
-    image_dir = os.path.join(a.output_dir, "features")
+    image_dir = os.path.join(config.output_dir, "features")
     if not os.path.exists(image_dir):
         os.makedirs(image_dir)
 
@@ -195,7 +89,7 @@ def save_features(fetches, step=None):
 
 
 def append_index(filesets, step=False):
-    index_path = os.path.join(a.output_dir, "index.html")
+    index_path = os.path.join(config.output_dir, "index.html")
     if os.path.exists(index_path):
         index = open(index_path, "a")
     else:
@@ -223,42 +117,42 @@ def append_index(filesets, step=False):
 
 
 def main():
-    if a.seed is None:
-        a.seed = random.randint(0, 2**31 - 1)
+    if config.seed is None:
+        config.seed = random.randint(0, 2**31 - 1)
 
-    tf.set_random_seed(a.seed)
-    np.random.seed(a.seed)
-    random.seed(a.seed)
+    tf.set_random_seed(config.seed)
+    np.random.seed(config.seed)
+    random.seed(config.seed)
 
-    if not os.path.exists(a.output_dir):
-        os.makedirs(a.output_dir)
+    if not os.path.exists(config.output_dir):
+        os.makedirs(config.output_dir)
 
-    if a.mode == "test" or a.mode == "features":
-        if a.checkpoint is None:
+    if config.mode == "test" or config.mode == "features":
+        if config.checkpoint is None:
             raise Exception("checkpoint required for test mode")
 
         # load some options from the checkpoint
         options = {"which_direction", "ngf", "ndf", "lab_colorization"}
-        with open(os.path.join(a.checkpoint, "options.json")) as f:
+        with open(os.path.join(config.checkpoint, "options.json")) as f:
             for key, val in json.loads(f.read()).items():
                 if key in options:
                     print("loaded", key, "=", val)
                     setattr(a, key, val)
         # disable these features in test mode
-        a.scale_size = CROP_SIZE
-        a.flip = False
+        config.scale_size = CROP_SIZE
+        config.flip = False
 
-    for k, v in a._get_kwargs():
+    for k, v in config.config._get_kwargs():
         print(k, "=", v)
 
-    with open(os.path.join(a.output_dir, "options.json"), "w") as f:
+    with open(os.path.join(config.output_dir, "options.json"), "w") as f:
         f.write(json.dumps(vars(a), sort_keys=True, indent=4))
 
     examples = load_examples()
     print("examples count = %d" % examples.count)
 
     # inputs and targets are [batch_size, height, width, channels]
-    model = create_model(examples.inputsX, examples.inputsY, a)
+    model = create_model(examples.inputsX, examples.inputsY)
 
     # undo colorization splitting on images that we use for display/output
     inputsX = deprocess(examples.inputsX)
@@ -281,9 +175,9 @@ def main():
     eR_Y2X = model.eR_Y2X
 
     def convert(image):
-        if a.aspect_ratio != 1.0:
+        if config.aspect_ratio != 1.0:
             # upscale to correct aspect ratio
-            size = [CROP_SIZE, int(round(CROP_SIZE * a.aspect_ratio))]
+            size = [CROP_SIZE, int(round(CROP_SIZE * config.aspect_ratio))]
             image = tf.image.resize_images(image, size=size, method=tf.image.ResizeMethod.BICUBIC)
 
         return tf.image.convert_image_dtype(image, dtype=tf.uint8, saturate=True)
@@ -428,24 +322,24 @@ def main():
 
     saver = tf.train.Saver(max_to_keep=1)
 
-    logdir = a.output_dir if (a.trace_freq > 0 or a.summary_freq > 0) else None
+    logdir = config.output_dir if (config.trace_freq > 0 or config.summary_freq > 0) else None
     sv = tf.train.Supervisor(logdir=logdir, save_summaries_secs=0, saver=None)
     with sv.managed_session(config=tf.ConfigProto(
       allow_soft_placement=True, log_device_placement=True)) as sess:
         print("parameter_count =", sess.run(parameter_count))
 
-        if a.checkpoint is not None:
+        if config.checkpoint is not None:
             print("loading model from checkpoint")
-            checkpoint = tf.train.latest_checkpoint(a.checkpoint)
+            checkpoint = tf.train.latest_checkpoint(config.checkpoint)
             saver.restore(sess, checkpoint)
 
         max_steps = 2**32
-        if a.max_epochs is not None:
-            max_steps = examples.steps_per_epoch * a.max_epochs
-        if a.max_steps is not None:
-            max_steps = a.max_steps
+        if config.max_epochs is not None:
+            max_steps = examples.steps_per_epoch * config.max_epochs
+        if config.max_steps is not None:
+            max_steps = config.max_steps
 
-        if a.mode == "test":
+        if config.mode == "test":
             # testing
             # at most, process the test data once
             start = time.time()
@@ -459,7 +353,7 @@ def main():
             print("wrote index at", index_path)
             print("rate", (time.time() - start) / max_steps)
 
-        elif a.mode == "features":
+        elif config.mode == "features":
             max_steps = min(examples.steps_per_epoch, max_steps)
             for step in range(max_steps):
                 results = sess.run(features_fetches)
@@ -474,7 +368,7 @@ def main():
 
                 options = None
                 run_metadata = None
-                if should(a.trace_freq):
+                if should(config.trace_freq):
                     options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                     run_metadata = tf.RunMetadata()
 
@@ -484,7 +378,7 @@ def main():
                     "global_step": sv.global_step,
                 }
 
-                if should(a.progress_freq):
+                if should(config.progress_freq):
                     fetches["discrimX2Y_loss"] = model.discrimX2Y_loss
                     fetches["discrimY2X_loss"] = model.discrimY2X_loss
                     fetches["genX2Y_loss"] = model.genX2Y_loss
@@ -494,33 +388,33 @@ def main():
                     fetches["code_recon_loss"] = model.code_recon_loss
                     fetches["feat_recon_loss"] = model.feat_recon_loss
 
-                if should(a.summary_freq):
+                if should(config.summary_freq):
                     fetches["summary"] = sv.summary_op
 
-                if should(a.display_freq):
+                if should(config.display_freq):
                     fetches["display"] = display_fetches
 
                 results = sess.run(fetches, options=options, run_metadata=run_metadata)
 
-                if should(a.summary_freq):
+                if should(config.summary_freq):
                     print("recording summary")
                     sv.summary_writer.add_summary(results["summary"], results["global_step"])
 
-                if should(a.display_freq):
+                if should(config.display_freq):
                     print("saving display images")
                     filesets = save_images(results["display"], step=results["global_step"])
                     append_index(filesets, step=True)
 
-                if should(a.trace_freq):
+                if should(config.trace_freq):
                     print("recording trace")
                     sv.summary_writer.add_run_metadata(run_metadata, "step_%d" % results["global_step"])
 
-                if should(a.progress_freq):
+                if should(config.progress_freq):
                     # global_step will have the correct step count if we resume from a checkpoint
                     train_epoch = math.ceil(results["global_step"] / examples.steps_per_epoch)
                     train_step = (results["global_step"] - 1) % examples.steps_per_epoch + 1
-                    rate = (step + 1) * a.batch_size / (time.time() - start)
-                    remaining = (max_steps - step) * a.batch_size / rate
+                    rate = (step + 1) * config.batch_size / (time.time() - start)
+                    remaining = (max_steps - step) * config.batch_size / rate
                     print("progress  epoch %d  step %d  image/sec %0.1f  remaining %dm" % (train_epoch, train_step, rate, remaining / 60))
                     print("discrimX2Y_loss", results["discrimX2Y_loss"])
                     print("discrimY2X_loss", results["discrimY2X_loss"])
@@ -531,9 +425,9 @@ def main():
                     print("code_recon_loss", results["code_recon_loss"])
                     print("feat_recon_loss", results["feat_recon_loss"])
 
-                if should(a.save_freq):
+                if should(config.save_freq):
                     print("saving model")
-                    saver.save(sess, os.path.join(a.output_dir, "model"), global_step=sv.global_step)
+                    saver.save(sess, os.path.join(config.output_dir, "model"), global_step=sv.global_step)
 
                 if sv.should_stop():
                     break

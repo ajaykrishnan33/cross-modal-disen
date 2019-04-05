@@ -16,7 +16,7 @@ from ops import *
 def _reverse_grad(unused_op, grad):
     return -1.0*grad
 
-def create_exclusive_text_decoder(eR, generator_outputs_channels):
+def create_exclusive_text_decoder(eR):
 
     initial_input = eR
 
@@ -74,7 +74,7 @@ def create_exclusive_text_decoder(eR, generator_outputs_channels):
         input = layers[-1]
         rectified = tf.nn.relu(input)
         output = gen_deconv1d(
-            rectified, generator_outputs_channels, out_width=32
+            rectified, config.wrl, out_width=32
         )
         output = tf.tanh(output)
         layers.append(output)

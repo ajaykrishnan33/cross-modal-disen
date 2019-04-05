@@ -50,11 +50,12 @@ class MSCOCODataset:
 
         record_filenames = glob(os.path.join(config.input_dir, glob_string))
 
-        dataset = tf.data.TFRecordDataset(record_filenames)
-        
-        dataset = dataset.map(self._extract_fn)
-        dataset = dataset.repeat()
-        dataset = dataset.batch(config.batch_size)
+        with tf.name_scope("load_images"):
+            dataset = tf.data.TFRecordDataset(record_filenames)
+            
+            dataset = dataset.map(self._extract_fn)
+            dataset = dataset.repeat()
+            dataset = dataset.batch(config.batch_size)
 
         self.dataset = dataset
 
