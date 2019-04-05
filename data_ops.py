@@ -34,7 +34,9 @@ class MSCOCODataset:
 
         caption = sequence["image/caption_ids"]
 
-        return processed_image, caption
+        padded_caption = tf.pad(caption, tf.convert_to_tensor([[config.max_length - tf.shape(caption)[0]]]))
+
+        return processed_image, padded_caption
 
 
     def __init__(self, mode):
