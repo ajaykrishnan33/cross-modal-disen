@@ -18,9 +18,9 @@ class MSCOCODataset:
 
         return img
 
-    def _extract_fn(self, tfrecordlist):
-        context, sequence, lengths = tf.io.parse_sequence_example(
-            tfrecordlist,
+    def _extract_fn(self, tfrecord):
+        context, sequence = tf.io.parse_single_sequence_example(
+            tfrecord,
             context_features={
                 "image/data": tf.FixedLenFeature([], dtype=tf.string)
             },
