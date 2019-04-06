@@ -34,9 +34,6 @@ class MSCOCODataset:
 
         caption = sequence["image/caption_ids"]
 
-        if caption.shape[0] > self.max_caption_length:
-            self.max_caption_length = caption.shape[0]
-
         padded_caption = tf.pad(caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]]))
 
         return processed_image, padded_caption
@@ -55,14 +52,12 @@ class MSCOCODataset:
 
         record_filenames = glob(os.path.join(config.input_dir, glob_string))
 
-        self.max_caption_length = 0
-
         with tf.name_scope("load_images"):
             dataset = tf.data.TFRecordDataset(record_filenames)
             
             dataset = dataset.map(self._extract_fn)
             # dataset = dataset.repeat()
-            dataset = dataset.batch(config.batch_size)
+            dataset = dataset.batch(1)
 
         self.dataset = dataset
 
@@ -72,20 +67,19 @@ class MSCOCODataset:
 # comment out dataset.repeat from MSCOCODataset before running this
 dataset = MSCOCODataset(config.mode)
 x, y = dataset.next_batch()
-lenx = tf.shape(x)[0]
 sess = tf.Session()
 
 total_len = 0
+max_caption_length = 0
 while True:
-	try:
-		actual_lenx = sess.run(lenx)
-		if actual_lenx:
-			total_len += actual_lenx
-		else:
-			break
-	except tf.errors.OutOfRangeError:
-		break
+    try:
+        captions = sess.run(y)
+        if captions.shape[1] > max_caption_length:
+            max_caption_length = captions.shape[1]
+        total_len += 1
+    except tf.errors.OutOfRangeError:
+        break
 
 print("Total dataset size:", total_len)
-print("Max caption length:", dataset.max_caption_length)
+print("Max caption length:", max_caption_length)
 
