@@ -71,15 +71,23 @@ sess = tf.Session()
 
 total_len = 0
 max_caption_length = 0
+length_freq = {}
 while True:
     try:
         captions = sess.run(y)
         if captions.shape[1] > max_caption_length:
             max_caption_length = captions.shape[1]
+        length_freq.setdefault(captions.shape[1], 0)
+        length_freq[captions.shape[1]] += 1
         total_len += 1
     except tf.errors.OutOfRangeError:
         break
 
 print("Total dataset size:", total_len)
 print("Max caption length:", max_caption_length)
+
+import json
+
+with open("length_freq.json", "w") as f:
+    f.write(json.dumps(length_freq, sort_keys=True, indent=4))
 
