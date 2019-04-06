@@ -56,7 +56,7 @@ class MSCOCODataset:
             dataset = tf.data.TFRecordDataset(record_filenames)
             
             dataset = dataset.map(self._extract_fn)
-            dataset = dataset.repeat()
+            # dataset = dataset.repeat()
             dataset = dataset.batch(config.batch_size)
 
         self.dataset = dataset
