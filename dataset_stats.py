@@ -59,13 +59,19 @@ sess = tf.Session()
 total_len = 0
 max_caption_length = 0
 length_freq = {}
+aspect_ratio_freq = {}
 while True:
     try:
-        captions = sess.run(y)
+        images, captions = sess.run((x,y))
         if captions.shape[1] > max_caption_length:
             max_caption_length = captions.shape[1]
         length_freq.setdefault(captions.shape[1], 0)
         length_freq[captions.shape[1]] += 1
+
+        ar = images.shape[2]/images.shape[1]
+        aspect_ratio_freq.setdefault(ar, 0)
+        aspect_ratio_freq[ar] += 1
+
         total_len += 1
     except tf.errors.OutOfRangeError:
         break
@@ -77,4 +83,7 @@ import json
 
 with open("length_freq.json", "w") as f:
     f.write(json.dumps(length_freq, sort_keys=True, indent=4))
+
+with open("aspect_ratio_freq.json", "w") as f:
+    f.write(json.dumps(aspect_ratio_freq, sort_keys=True, indent=4))
 

@@ -56,7 +56,8 @@ class MSCOCODataset:
             self.total_size = 20267
         else:
             glob_string = "val-*"
-            self.total_size = 100
+            self.total_size = 10132
+
 
         record_filenames = glob(os.path.join(config.input_dir, glob_string))
 
