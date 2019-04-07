@@ -226,7 +226,7 @@ def _to_sequence_example(image, decoder, vocab):
     # Can be handled in the network code later.
 
     context = tf.train.Features(feature={
-        "image/image_id": _int64_feature(image.image_id),
+        "image/image_id": _bytes_feature(image.image_id),
         "image/data": _bytes_feature(encoded_image),
     })
 
@@ -314,8 +314,8 @@ def _process_dataset(name, images, vocab, num_shards):
       num_shards: Integer number of shards for the output files.
     """
     # Break up each image into a separate entity for each caption.
-    images = [ImageMetadata(image.image_id, image.filename, [caption])
-              for image in images for caption in image.captions]
+    images = [ImageMetadata(str(image.image_id)+"-"+str(i), image.filename, [caption])
+              for image in images for i, caption in enumerate(image.captions)]
 
     # Shuffle the ordering of images. Make the randomization repeatable.
     random.seed(12345)
