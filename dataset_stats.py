@@ -5,6 +5,19 @@ import os
 
 class MSCOCODataset:
 
+    def _process_image(self, encoded_image):
+        img = tf.image.decode_jpeg(encoded_image, channels=3)
+        img = tf.image.convert_image_dtype(img, dtype=tf.float32)
+        # img = tf.image.resize_images(
+        #     img, size=[config.image_size, config.image_size], method=tf.image.ResizeMethod.BILINEAR
+        # )
+
+        # range: [0,1] ==> [-1,+1]
+        # img = tf.subtract(img, 0.5)
+        # img = tf.multiply(img, 2.0)
+
+        return img
+
     def _extract_fn(self, tfrecord):
         context, sequence = tf.io.parse_single_sequence_example(
             tfrecord,
@@ -17,13 +30,13 @@ class MSCOCODataset:
         )
 
         encoded_image = context["image/data"]
-        # processed_image = self._process_image(encoded_image)
+        processed_image = self._process_image(encoded_image)
 
         caption = sequence["image/caption_ids"]
 
         # padded_caption = tf.pad(caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]]))
 
-        return encoded_image, caption
+        return processed_image, caption
 
 
     def __init__(self, mode):
