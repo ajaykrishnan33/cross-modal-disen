@@ -34,7 +34,12 @@ class MSCOCODataset:
 
         caption = sequence["image/caption_ids"]
 
-        padded_caption = tf.pad(caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]]))
+        if tf.shape(caption)[0] < config.max_length:
+            padded_caption = tf.pad(
+                caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]])
+            )
+        else:
+            padded_caption = caption[:config.max_length]
 
         return processed_image, padded_caption
 
@@ -45,10 +50,13 @@ class MSCOCODataset:
 
         if mode=="train":
             glob_string = "train-*" 
+            self.total_size = 586368
         elif mode=="test":
             glob_string = "test-*"
+            self.total_size = 20267
         else:
             glob_string = "val-*"
+            self.total_size = 100
 
         record_filenames = glob(os.path.join(config.input_dir, glob_string))
 
@@ -65,7 +73,7 @@ class MSCOCODataset:
         return self.dataset.make_one_shot_iterator().get_next()
 
 if __name__ == "__main__":
-    x = MSCOCODataset(config.mode).next_batch()
+    x = MSCOCODataset("val").next_batch()
     print(x)
     sess = tf.Session()
     y = sess.run(x)

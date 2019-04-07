@@ -52,7 +52,7 @@ class MSCOCODataset:
         return self.dataset.make_one_shot_iterator().get_next()
 
 # comment out dataset.repeat from MSCOCODataset before running this
-dataset = MSCOCODataset(config.mode)
+dataset = MSCOCODataset("val")
 x, y = dataset.next_batch()
 sess = tf.Session()
 
