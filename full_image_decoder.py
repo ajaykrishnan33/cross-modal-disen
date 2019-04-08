@@ -23,7 +23,7 @@ def create_full_image_decoder(sR, eR, generator_outputs_channels, noise = True):
 
     if config.mode == "train":
         if noise:
-            inoise = tf.random_normal(initial_input.shape, mean=0.0, stddev=a.noise)
+            inoise = tf.random_normal(initial_input.shape, mean=0.0, stddev=config.noise)
             initial_input += inoise
 
 
