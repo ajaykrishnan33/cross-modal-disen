@@ -60,7 +60,7 @@ def conv1d_transpose_special(
             #             "output_shape does not match filter's output channels, "
             #             "{} != {}".format(output_shape[axis],
             #                               filter.get_shape()[1]))
-
+            padding = padding.upper()
             if padding != "VALID" and padding != "SAME":
                 raise ValueError("padding must be either VALID or SAME:"
                                  " {}".format(padding))
