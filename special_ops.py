@@ -4,7 +4,7 @@ import math
 
 def conv1d_transpose_special(
         value,
-        filters,
+        out_channels,
         out_width,
         kernel_size,
         stride,
@@ -43,7 +43,7 @@ def conv1d_transpose_special(
             axis = 2
 
             filter = tf.Variable(
-                initial_value=kernel_initializer([kernel_size, filters], dtype=tf.float32)
+                initial_value=kernel_initializer([kernel_size, tf.shape(value)[-1]], dtype=tf.float32)
             )
 
             if not value.get_shape().dims[axis].is_compatible_with(
@@ -82,7 +82,7 @@ def conv1d_transpose_special(
             batch_size = tf.shape(value)[0]
 
             output_shape = tf.concat(
-                [[batch_size], [1], [out_width, filters]], axis=0)
+                [[batch_size], [1], [out_width, out_channels]], axis=0)
             spatial_start_dim = 1
             strides = [1, 1, stride, 1]
             
