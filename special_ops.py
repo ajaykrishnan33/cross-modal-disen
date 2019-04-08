@@ -1,4 +1,5 @@
-from tensorflow.python.ops.nn_ops import *
+import tensorflow as tf
+# from tensorflow.python.ops.nn_ops import *
 import math
 
 def conv1d_transpose_special(
@@ -29,8 +30,8 @@ def conv1d_transpose_special(
       ValueError: If input/output depth does not match `filter`'s shape, or if
         padding is other than `'VALID'` or `'SAME'`.
     """
-    with ops.name_scope(name, "conv1d_transpose", [value]) as name:
-        with ops.variable_scope(name, "conv1d_transpose", [value]):
+    with tf.name_scope(name, "conv1d_transpose", [value]) as name:
+        with tf.variable_scope(name, "conv1d_transpose", [value]):
             # output_shape_ = ops.convert_to_tensor(
             #     output_shape, name="output_shape")
             # if not output_shape_.get_shape().is_compatible_with(tensor_shape.vector(3)):
@@ -80,15 +81,15 @@ def conv1d_transpose_special(
 
             batch_size = tf.shape(value)[0]
 
-            output_shape = array_ops.concat(
+            output_shape = tf.concat(
                 [[batch_size], [1], [out_width, filters]], axis=0)
             spatial_start_dim = 1
             strides = [1, 1, stride, 1]
             
-            value = array_ops.expand_dims(value, spatial_start_dim)
-            filter = array_ops.expand_dims(filter, 0)  # pylint: disable=redefined-builtin
+            value = tf.expand_dims(value, spatial_start_dim)
+            filter = tf.expand_dims(filter, 0)  # pylint: disable=redefined-builtin
 
-            result = gen_nn_ops.conv2d_backprop_input(
+            result = tf.nn.conv2d_backprop_input(
                 input_sizes=output_shape,
                 filter=filter,
                 out_backprop=value,
@@ -96,4 +97,4 @@ def conv1d_transpose_special(
                 padding=padding,
                 data_format=data_format_2d,
                 name=name)
-            return array_ops.squeeze(result, [spatial_start_dim])
+            return tf.squeeze(result, [spatial_start_dim])
