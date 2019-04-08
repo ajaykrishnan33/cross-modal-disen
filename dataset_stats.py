@@ -78,8 +78,8 @@ aspect_ratio_freq = {}
 while True:
     try:
         sample_ids, images, captions = sess.run((p,x,y))
-        print(sample_ids)
-        print(str(sample_ids[0].decode('utf-8')))
+        # print(sample_ids)
+        # print(str(sample_ids[0].decode('utf-8')))
         if captions.shape[1] > max_caption_length:
             max_caption_length = captions.shape[1]
         length_freq.setdefault(captions.shape[1], 0)

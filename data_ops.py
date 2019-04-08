@@ -11,6 +11,8 @@ class Vocabulary:
                 word = sentence.strip().split(" ")[0]
                 self._id_to_word[i] = word
 
+        config.vocab_size = len(self._id_to_word) + 1 # one extra for the padding character with id: 0
+
     def get_word(id):
         if id==0:
             return ""
