@@ -397,3 +397,7 @@ def create_model(inputsI, inputsT):
                        gen_exclusiveI2T_train,gen_exclusiveT2I_train,feat_recon_train),
     )
 
+if __name__ == "__main__":
+    val_dataset = MSCOCODataset("val")
+    ids, inputsI, inputsT = val_dataset.next_batch()
+    model = create_model(inputsI, inputsT)
