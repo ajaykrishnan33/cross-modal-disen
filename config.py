@@ -6,6 +6,9 @@ parser.add_argument("--input_dir", required=True, help="path to folder containin
 # Added features mode to extract features for retrieval
 parser.add_argument("--mode", required=True, choices=["train", "test", "features"])
 parser.add_argument("--output_dir", required=True, help="where to put output files")
+
+parser.add_argument("--vocab", required=True, help="where to get word to id mapping")
+
 parser.add_argument("--seed", type=int)
 parser.add_argument("--checkpoint", default=None, help="directory with checkpoint to resume training from or use for testing")
 parser.add_argument("--max_steps", type=int, help="number of training steps (0 to disable)")
@@ -23,11 +26,11 @@ parser.add_argument("--batch_size", type=int, default=8, help="number of images 
 parser.add_argument("--which_direction", type=str, default="AtoB", choices=["AtoB", "BtoA"])
 parser.add_argument("--ngfI", type=int, default=64, help="number of generator filters in first conv layer")
 parser.add_argument("--max_length", type=int, default=32, help="max number of words in the caption")
-parser.add_argument("--ndf", type=int, default=64, help="number of discriminator filters in first conv layer")
-parser.add_argument("--scale_size", type=int, default=256, help="scale images to this size before cropping to 256x256")
-parser.add_argument("--flip", dest="flip", action="store_true", help="flip images horizontally")
-parser.add_argument("--no_flip", dest="flip", action="store_false", help="don't flip images horizontally")
-parser.set_defaults(flip=False)
+parser.add_argument("--ndfI", type=int, default=64, help="number of discriminator filters in first conv layer")
+# parser.add_argument("--scale_size", type=int, default=256, help="scale images to this size before cropping to 256x256")
+# parser.add_argument("--flip", dest="flip", action="store_true", help="flip images horizontally")
+# parser.add_argument("--no_flip", dest="flip", action="store_false", help="don't flip images horizontally")
+# parser.set_defaults(flip=False)
 parser.add_argument("--lr", type=float, default=0.0002, help="initial learning rate for adam")
 parser.add_argument("--beta1", type=float, default=0.5, help="momentum term of adam")
 parser.add_argument("--l1_weight", type=float, default=100.0, help="weight on L1 term for generator gradient")
@@ -45,15 +48,15 @@ class Config:
     def __init__(self):
         self.a = parser.parse_args()
 
-        self.image_size = 256
+        self.a.image_size = 256
 
-        self.img_output_dim = self.image_size*self.image_size*3 # 256x256x3
+        self.a.img_output_dim = self.a.image_size*self.a.image_size*3 # 256x256x3
 
-        self.wrl = 256
+        self.a.wrl = 256
 
-        self.text_size = (self.max_length, self.wrl)
+        self.a.text_size = (self.a.max_length, self.a.wrl)
 
-        self.txt_output_dim = self.text_size[0] * self.text_size[1]
+        self.a.txt_output_dim = self.a.text_size[0] * self.a.text_size[1]
 
     def __getattr__(self, name):
         if hasattr(super(), name):
