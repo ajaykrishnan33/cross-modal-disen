@@ -398,6 +398,8 @@ def create_model(inputsI, inputsT):
     )
 
 if __name__ == "__main__":
+    from data_ops import MSCOCODataset, Vocabulary
+    vocabulary = Vocabulary()
     val_dataset = MSCOCODataset("val")
     ids, inputsI, inputsT = val_dataset.next_batch()
     model = create_model(inputsI, inputsT)
