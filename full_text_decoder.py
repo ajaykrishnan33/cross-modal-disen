@@ -28,12 +28,12 @@ def create_full_text_decoder(sR, eR, noise = True):
 
 
     with tf.variable_scope("decoder_fc1"):
-        fc1_output = gen_fc(initial_input, output_channels=8192) #4096
+        fc1_output = gen_fc(initial_input, out_channels=8192) #4096
         rectified = tf.nn.relu(fc1_output, 0.2)
         fc1_bn = batchnorm(rectified, axis=1)
 
     # with tf.variable_scope("decoder_fc2"):
-    #     fc2_output = gen_fc(fc1_bin, output_channels=8192)
+    #     fc2_output = gen_fc(fc1_bin, out_channels=8192)
     #     rectified = tf.nn.relu(fc2_output, 0.2)
     #     fc2_bn = batchnorm(rectified, axis=1)
 
