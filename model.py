@@ -238,7 +238,7 @@ def create_model(inputsI, inputsT):
     #     autoencoderT_loss = config.l1_weight*tf.reduce_mean(tf.abs(auto_outputT-inputsT))
     with tf.name_scope("autoencoderT_loss"):
         autoencoderT_loss = config.l1_weight * tf.contrib.seq2seq.sequence_loss(
-            auto_outputT, inputsT, tf.ones_like(auto_outputT)
+            auto_outputT, inputsT, tf.ones_like(inputsT, dtype=tf.float32)
         )
 
     with tf.name_scope("feat_recon_loss"):
