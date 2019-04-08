@@ -3,6 +3,19 @@ from glob import glob
 import config
 import os
 
+class Vocabulary:
+    def __init__(self):
+        self._id_to_word = {}
+        with open(config.vocab, "r") as f:
+            for i, sentence in enumerate(f):
+                word = sentence.strip().split(" ")[0]
+                self._id_to_word[i] = word
+
+    def get_word(id):
+        if id==0:
+            return ""
+        return self._id_to_word[id]
+
 class MSCOCODataset:
 
     def _process_image(self, encoded_image):
@@ -22,6 +35,7 @@ class MSCOCODataset:
         context, sequence = tf.io.parse_single_sequence_example(
             tfrecord,
             context_features={
+                "image/image_id": tf.FixedLenFeature([], dtype=tf.string),
                 "image/data": tf.FixedLenFeature([], dtype=tf.string)
             },
             sequence_features={
@@ -29,19 +43,33 @@ class MSCOCODataset:
             }
         )
 
+        sample_id = context["image/image_id"]
+
         encoded_image = context["image/data"]
         processed_image = self._process_image(encoded_image)
 
         caption = sequence["image/caption_ids"]
 
-        if tf.shape(caption)[0] < config.max_length:
-            padded_caption = tf.pad(
+        def true_fn():
+            return tf.pad(
                 caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]])
             )
-        else:
-            padded_caption = caption[:config.max_length]
 
-        return processed_image, padded_caption
+        def false_fn():
+            return caption[:config.max_length]
+
+        padded_caption = tf.cond(
+            tf.shape(caption)[0] < config.max_length, true_fn=true_fn, false_fn=false_fn
+        )
+        # ### NEEDS FIXING
+        # if tf.shape(caption)[0] < config.max_length:
+        #     padded_caption = tf.pad(
+        #         caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]])
+        #     )
+        # else:
+        #     padded_caption = caption[:config.max_length]
+
+        return sample_id, processed_image, padded_caption
 
 
     def __init__(self, mode):
