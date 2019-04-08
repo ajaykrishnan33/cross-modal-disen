@@ -2,6 +2,10 @@ import tensorflow as tf
 import config
 from special_ops import conv1d_transpose_special
 
+@tf.RegisterGradient("ReverseGrad")
+def _reverse_grad(unused_op, grad):
+    return -1.0*grad
+
 def batchnorm(inputs, axis=3):
     return tf.layers.batch_normalization(
         inputs, axis=axis, epsilon=1e-5, momentum=0.1, training=True, 
@@ -88,7 +92,7 @@ def create_text_embedder(text):
     # text: [batch, max_length, vocab_size]
 
     # encoder_embedding: [batch, max_length, vocab_size] => [batch, max_length, wrl]
-    with tf.name_scope("text_embedding", values=[text])
+    with tf.name_scope("text_embedding", values=[text]):
         z = tf.reshape(text, [-1, config.vocab_size])
         encoded_text = gen_embedder(z, config.vocab_size, config.wrl, config.max_length)
         encoded_text = tf.reshape(encoded_text, [-1, config.max_length, config.wrl])

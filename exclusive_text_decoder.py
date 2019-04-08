@@ -12,10 +12,6 @@ import time
 import config
 from ops import *
 
-@tf.RegisterGradient("ReverseGrad")
-def _reverse_grad(unused_op, grad):
-    return -1.0*grad
-
 def create_exclusive_text_decoder(eR):
 
     initial_input = eR
