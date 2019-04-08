@@ -12,7 +12,7 @@ import time
 from ops import *
 import config
 
-def create_text_discriminator(embeddded_text):
+def create_text_discriminator(embedded_text):
     layers = []
 
     # layer_1: [batch, max_length, wrl] => [batch, max_length/2, wrl*2]
