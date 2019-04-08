@@ -42,19 +42,19 @@ def create_full_image_decoder(sR, eR, generator_outputs_channels, noise = True):
     # Add noise only at train time
     if config.mode == "train":
         layer_specs = [
-            (config.ngf * 8, 0.5, 4, (2,2)),   # decoder_conv6: [batch, 4, 4, ngf * 8] => [batch, 8, 8, ngf * 8]
-            (config.ngf * 8, 0.5, 4, (2,2)),   # decoder_conv5: [batch, 8, 8, ngf * 8] => [batch, 16, 16, ngf * 8]
-            (config.ngf * 4, 0.5, 4, (2,2)),   # decoder_conv4: [batch, 16, 16, ngf * 8] => [batch, 32, 32, ngf * 4]
-            (config.ngf * 2, 0.0, 4, (2,2)),   # decoder_conv3: [batch, 32, 32, ngf * 4] => [batch, 64, 64, ngf * 2]
-            (config.ngf, 0.0, 4, (2,2)),       # decoder_conv2: [batch, 64, 64, ngf * 2] => [batch, 128, 128, ngf]
+            (config.ngfI * 8, 0.5, 4, (2,2)),   # decoder_conv6: [batch, 4, 4, ngf * 8] => [batch, 8, 8, ngf * 8]
+            (config.ngfI * 8, 0.5, 4, (2,2)),   # decoder_conv5: [batch, 8, 8, ngf * 8] => [batch, 16, 16, ngf * 8]
+            (config.ngfI * 4, 0.5, 4, (2,2)),   # decoder_conv4: [batch, 16, 16, ngf * 8] => [batch, 32, 32, ngf * 4]
+            (config.ngfI * 2, 0.0, 4, (2,2)),   # decoder_conv3: [batch, 32, 32, ngf * 4] => [batch, 64, 64, ngf * 2]
+            (config.ngfI, 0.0, 4, (2,2)),       # decoder_conv2: [batch, 64, 64, ngf * 2] => [batch, 128, 128, ngf]
         ]
     else:
         layer_specs = [
-            (config.ngf * 8, 0.0, 4, (2,2)),   # decoder_conv6: [batch, 4, 4, ngf * 8] => [batch, 8, 8, ngf * 8]
-            (config.ngf * 8, 0.0, 4, (2,2)),   # decoder_conv5: [batch, 8, 8, ngf * 8] => [batch, 16, 16, ngf * 8]
-            (config.ngf * 4, 0.0, 4, (2,2)),   # decoder_conv4: [batch, 16, 16, ngf * 8] => [batch, 32, 32, ngf * 4]
-            (config.ngf * 2, 0.0, 4, (2,2)),   # decoder_conv3: [batch, 32, 32, ngf * 4] => [batch, 64, 64, ngf * 2]
-            (config.ngf, 0.0, 4, (2,2)),       # decoder_conv2: [batch, 64, 64, ngf * 2] => [batch, 128, 128, ngf]
+            (config.ngfI * 8, 0.0, 4, (2,2)),   # decoder_conv6: [batch, 4, 4, ngf * 8] => [batch, 8, 8, ngf * 8]
+            (config.ngfI * 8, 0.0, 4, (2,2)),   # decoder_conv5: [batch, 8, 8, ngf * 8] => [batch, 16, 16, ngf * 8]
+            (config.ngfI * 4, 0.0, 4, (2,2)),   # decoder_conv4: [batch, 16, 16, ngf * 8] => [batch, 32, 32, ngf * 4]
+            (config.ngfI * 2, 0.0, 4, (2,2)),   # decoder_conv3: [batch, 32, 32, ngf * 4] => [batch, 64, 64, ngf * 2]
+            (config.ngfI, 0.0, 4, (2,2)),       # decoder_conv2: [batch, 64, 64, ngf * 2] => [batch, 128, 128, ngf]
         ]
 
     num_encoder_layers = 6
