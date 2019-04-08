@@ -22,6 +22,7 @@ class MSCOCODataset:
         context, sequence = tf.io.parse_single_sequence_example(
             tfrecord,
             context_features={
+                "image/image_id": tf.FixedLenFeature([], dtype=tf.string),
                 "image/data": tf.FixedLenFeature([], dtype=tf.string)
             },
             sequence_features={
@@ -29,6 +30,7 @@ class MSCOCODataset:
             }
         )
 
+        sample_id = str(context["image/image_id"].decode('utf8'))
         encoded_image = context["image/data"]
         processed_image = self._process_image(encoded_image)
 
@@ -36,7 +38,7 @@ class MSCOCODataset:
 
         # padded_caption = tf.pad(caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]]))
 
-        return processed_image, caption
+        return sample_id, processed_image, caption
 
 
     def __init__(self, mode):
@@ -66,7 +68,7 @@ class MSCOCODataset:
 
 # comment out dataset.repeat from MSCOCODataset before running this
 dataset = MSCOCODataset("val")
-x, y = dataset.next_batch()
+p, x, y = dataset.next_batch()
 sess = tf.Session()
 
 total_len = 0
@@ -75,7 +77,8 @@ length_freq = {}
 aspect_ratio_freq = {}
 while True:
     try:
-        images, captions = sess.run((x,y))
+        sample_ids, images, captions = sess.run((p,x,y))
+        print(sample_ids)
         if captions.shape[1] > max_caption_length:
             max_caption_length = captions.shape[1]
         length_freq.setdefault(captions.shape[1], 0)
