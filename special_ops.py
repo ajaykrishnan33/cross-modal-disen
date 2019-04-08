@@ -43,7 +43,7 @@ def conv1d_transpose_special(
             axis = 2
 
             filter = tf.Variable(
-                initial_value=kernel_initializer([kernel_size, value.get_shape().dims[axis]], dtype=tf.float32)
+                initial_value=kernel_initializer([kernel_size, int(value.get_shape().dims[axis])], dtype=tf.float32)
             )
 
             if not value.get_shape().dims[axis].is_compatible_with(
