@@ -22,12 +22,12 @@ def create_exclusive_text_decoder(eR):
         with g.gradient_override_map({"Identity": "ReverseGrad"}):
             initial_input = tf.identity(initial_input)
         fc1_output = gen_fc(initial_input, out_channels=8192) #4096
-        rectified = lrelu(fc1_output, 0.2)
+        rectified = tf.nn.relu(fc1_output)
         fc1_bn = batchnorm(rectified, axis=1)
 
     # with tf.variable_scope("decoder_fc2"):
     #     fc2_output = gen_fc(fc1_bin, out_channels=8192)
-    #     rectified = lrelu(fc2_output, 0.2)
+    #     rectified = tf.nn.relu(fc2_output)
     #     fc2_bn = batchnorm(rectified, axis=1)
 
     z = tf.reshape(fc1_bn, [-1, 1, config.wrl*32]) # fc2_bn
@@ -55,7 +55,7 @@ def create_exclusive_text_decoder(eR):
             
             output = gen_deconv1d(
                 rectified, out_channels, out_width, kernel_size=kernel_size, 
-                strides=stride, padding=padding
+                stride=stride, padding=padding
             )
             output = batchnorm(output, axis=2)
 

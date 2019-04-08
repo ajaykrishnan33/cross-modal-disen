@@ -75,7 +75,7 @@ def create_full_text_decoder(sR, eR, noise = True):
 
             output = gen_deconv1d(
                 rectified, out_channels, out_width, kernel_size=kernel_size, 
-                strides=stride, padding=padding
+                stride=stride, padding=padding
             )
             output = batchnorm(output, axis=2)
 
