@@ -27,7 +27,7 @@ def create_text_encoder(embedded_text):
             rectified = lrelu(layers[-1], 0.2)
             # [batch, in_height, in_width, in_channels] => [batch, in_height/2, in_width/2, out_channels]
             convolved = gen_conv1d(rectified, out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
-            output = batchnorm(convolved)
+            output = batchnorm(convolved, axis=2)
             layers.append(output)
 
     # Shared part of the representation

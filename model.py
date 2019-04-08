@@ -54,8 +54,8 @@ def create_model(inputsI, inputsT):
         sR_T2I, eR_T2I = create_text_encoder(inputsT_embedded)
 
     # Generate random noise to substitute exclusive rep
-    z = tf.random_normal(eR_I2T.shape)
-    z2 = tf.random_normal(eR_I2T.shape)
+    z = tf.random_normal(tf.shape(eR_I2T))
+    z2 = tf.random_normal(tf.shape(eR_I2T))
 
     # One copy of the decoder for the noise input, the second copy for the correct the cross-domain autoencoder
     with tf.name_scope("generatorI2T_decoder_noise"):
