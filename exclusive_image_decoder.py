@@ -65,7 +65,7 @@ def create_exclusive_image_decoder(eR, generator_outputs_channels):
     with tf.variable_scope("decoder_conv1"):
         input = layers[-1]
         rectified = tf.nn.relu(input)
-        output = gen_deconv(rectified, generator_outputs_channels, a)
+        output = gen_deconv2d(rectified, generator_outputs_channels, a)
         output = tf.tanh(output)
         layers.append(output)
 
