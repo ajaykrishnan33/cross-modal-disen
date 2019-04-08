@@ -30,7 +30,7 @@ class MSCOCODataset:
             }
         )
 
-        sample_id = str(context["image/image_id"].decode('utf8'))
+        sample_id = context["image/image_id"]
         encoded_image = context["image/data"]
         processed_image = self._process_image(encoded_image)
 
@@ -79,6 +79,7 @@ while True:
     try:
         sample_ids, images, captions = sess.run((p,x,y))
         print(sample_ids)
+        print(str(sample_ids[0].decode('utf-8')))
         if captions.shape[1] > max_caption_length:
             max_caption_length = captions.shape[1]
         length_freq.setdefault(captions.shape[1], 0)
