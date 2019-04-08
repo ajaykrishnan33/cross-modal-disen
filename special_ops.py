@@ -47,10 +47,10 @@ def conv1d_transpose_special(
             )
 
             if not value.get_shape().dims[axis].is_compatible_with(
-                    filter.get_shape()[2]):
+                    filter.get_shape()[-1]):
                 raise ValueError("input channels does not match filter's input channels, "
                                  "{} != {}".format(value.get_shape()[axis],
-                                                   filter.get_shape()[2]))
+                                                   filter.get_shape()[-1]))
 
             # if isinstance(output_shape, (list, np.ndarray)):
             #     # output_shape's shape should be == [3] if reached this point.
