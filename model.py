@@ -206,7 +206,7 @@ def create_model(inputsI, inputsT):
         differences = tf.reshape(outputs_exclusiveI2T_embedded,[-1,config.txt_output_dim])-tf.reshape(inputsT_embedded,[-1,config.txt_output_dim])
         interpolates = tf.reshape(inputsT_embedded,[-1,config.txt_output_dim]) + (alpha*differences)
         with tf.variable_scope("discriminator_exclusiveI2T", reuse=True):
-            gradients = tf.gradients(create_image_discriminator(tf.reshape(interpolates,[-1,config.text_size[0],config.text_size[1]])),
+            gradients = tf.gradients(create_text_discriminator(tf.reshape(interpolates,[-1,config.text_size[0],config.text_size[1]])),
                              [interpolates])[0]
         slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients),
                                        reduction_indices=[1]))
@@ -224,7 +224,7 @@ def create_model(inputsI, inputsT):
         differences = tf.reshape(outputs_exclusiveT2I,[-1,config.img_output_dim])-tf.reshape(inputsI,[-1,config.img_output_dim])
         interpolates = tf.reshape(inputsI,[-1,config.img_output_dim]) + (alpha*differences)
         with tf.variable_scope("discriminator_exclusiveT2I", reuse=True):
-            gradients = tf.gradients(create_text_discriminator(tf.reshape(interpolates,[-1,config.image_size,config.image_size,3])),
+            gradients = tf.gradients(create_image_discriminator(tf.reshape(interpolates,[-1,config.image_size,config.image_size,3])),
                              [interpolates])[0]
         slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients),
                                        reduction_indices=[1]))
