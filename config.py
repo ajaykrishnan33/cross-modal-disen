@@ -59,6 +59,7 @@ class Config:
         self.a.txt_output_dim = self.a.text_size[0] * self.a.text_size[1]
 
         self.a.discrim_txt_num_conv_layers = 5
+        self.a.discrim_img_num_conv_layers = 6
 
     def __getattr__(self, name):
         if hasattr(super(), name):
