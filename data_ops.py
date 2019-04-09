@@ -5,18 +5,19 @@ import os
 
 class Vocabulary:
     def __init__(self):
-        self._id_to_word = {}
+        temp = []
         with open(config.vocab, "r") as f:
             for i, sentence in enumerate(f):
                 word = sentence.strip().split(" ")[0]
-                self._id_to_word[i] = word
+                temp.append(word)
 
-        config.vocab_size = len(self._id_to_word) + 1 # one extra for the padding character with id: 0
+        config.vocab_size = len(temp) + 1 # one extra for the padding character with id: 0
+        self._id_to_word = tf.constant(temp, dtype=tf.string)
 
     def get_word(id):
         if id==0:
             return ""
-        return self._id_to_word[id]
+        return self._id_to_word[id-1]
 
 class MSCOCODataset:
 
