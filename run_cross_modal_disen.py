@@ -279,10 +279,10 @@ def main():
         tf.summary.image("inputsI", converted_inputsI,max_outputs=3)
 
     with tf.name_scope("T1_input_summary"):
-        tf.summary.text("inputsT", converted_inputsT,max_outputs=3)
+        tf.summary.text("inputsT", converted_inputsT)
 
     with tf.name_scope("I2T_output_summary"):
-        tf.summary.text("outputsI2T", converted_outputsI2T,max_outputs=3)
+        tf.summary.text("outputsI2T", converted_outputsI2T)
 
     with tf.name_scope("T2I_output_summary"):
         tf.summary.image("outputsT2I", converted_outputsT2I,max_outputs=3)
@@ -291,14 +291,14 @@ def main():
         tf.summary.image("auto_outputI", converted_auto_outputI,max_outputs=3)
 
     with tf.name_scope("T_autoencoder_summary"):
-        tf.summary.text("auto_outputT", converted_auto_outputT,max_outputs=3)
+        tf.summary.text("auto_outputT", converted_auto_outputT)
 
     with tf.name_scope("otherNoise_output_summary"):
-        tf.summary.text("outputsI2Tp", converted_outputsI2Tp,max_outputs=3)
+        tf.summary.text("outputsI2Tp", converted_outputsI2Tp)
         tf.summary.image("outputsT2Ip", converted_outputsT2Ip,max_outputs=3)
 
     with tf.name_scope("zzexclusive_I2T_summary"):
-        tf.summary.text("outputsI2T", converted_outputs_exclusiveI2T,max_outputs=3)
+        tf.summary.text("outputsI2T", converted_outputs_exclusiveI2T)
 
     with tf.name_scope("zzexclusive_T2I_summary"):
         tf.summary.image("outputsT2I", converted_outputs_exclusiveT2I,max_outputs=3)
