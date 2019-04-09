@@ -205,8 +205,7 @@ def main():
     def convert_img(image):
         return tf.image.convert_image_dtype(image, dtype=tf.uint8, saturate=True)
 
-    def convert_txt(one_hot_vectors):
-        index_vectors = tf.argmax(one_hot_vectors, axis=1)
+    def convert_index_txt(index_vectors):
 
         def sample_stringifier(index_vector):
             def word_stringifier(index):
@@ -215,13 +214,16 @@ def main():
 
         return tf.map_fn(sample_stringifier, index_vectors, dtype=tf.string)
 
+    def convert_txt(one_hot_vectors):
+        index_vectors = tf.argmax(one_hot_vectors, axis=2)
+        return convert_index_txt(index_vectors)
 
     # reverse any processing on images and text so they can be written to disk or displayed to user
     with tf.name_scope("convert_inputsI"):
         converted_inputsI = convert_img(inputsI)
 
     with tf.name_scope("convert_inputsT"):
-        converted_inputsT = convert_txt(inputsT)
+        converted_inputsT = convert_index_txt(inputsT)
 
     with tf.name_scope("convert_outputsI2T"):
         converted_outputsI2T = convert_txt(outputsI2T)
