@@ -96,10 +96,10 @@ def gen_embedder(batch_input, vocab_size, out_channels, max_length):
 def create_text_embedder(text):
     # text: [batch, max_length, vocab_size]
 
-    # encoder_embedding: [batch, max_length, vocab_size] => [batch, max_length, wrl]
+    # encoder_embedding: [batch, max_length] => [batch, max_length, wrl]
     with tf.name_scope("text_embedding", values=[text]):
-        z = tf.reshape(text, [-1, config.vocab_size])
-        encoded_text = gen_embedder(z, config.vocab_size, config.wrl, config.max_length)
+        # z = tf.reshape(text, [-1, config.max_length])
+        encoded_text = gen_embedder(text, config.vocab_size, config.wrl, config.max_length)
         encoded_text = tf.reshape(encoded_text, [-1, config.max_length, config.wrl])
 
     return encoded_text
