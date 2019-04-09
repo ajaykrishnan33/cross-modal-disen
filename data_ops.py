@@ -14,7 +14,7 @@ class Vocabulary:
         config.vocab_size = len(temp) + 1 # one extra for the padding character with id: 0
         self._id_to_word = tf.constant(temp, dtype=tf.string)
 
-    def get_word(id):
+    def get_word(self, id):
         if id==0:
             return ""
         return self._id_to_word[id-1]
