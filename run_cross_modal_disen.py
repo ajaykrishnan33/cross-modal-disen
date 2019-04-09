@@ -15,77 +15,101 @@ import os
 
 import config
 
-from data_ops import MSCOCODataset
+from data_ops import MSCOCODataset, Vocabulary
 
 CROP_SIZE = 256
 
-Examples = collections.namedtuple("Examples", "paths, inputsX, inputsY, count, steps_per_epoch")
+Examples = collections.namedtuple("Examples", "ids, inputsI, inputsT, ids_val, inputsI_val, inputsT_val, count, steps_per_epoch")
 
+vocabulary = Vocabulary()
 
 def load_examples():
     if config.input_dir is None or not os.path.exists(config.input_dir):
         raise Exception("input_dir does not exist")
 
-    dataset = MSCOCODataset(config.mode)
-
-    
-    # No longer in terms of input/target, but bidirectionally on domains X and Y
-    inputsX, inputsY = [a_images, b_images]
+    if config.mode == "train":
+        train_dataset = MSCOCODataset("val")
+        ids, inputsI, inputsT = train_dataset.next_batch()
+        count = train_dataset.total_size
+        steps_per_epoch = int(math.ceil(train_dataset.total_size/config.batch_size))
+        ids_val, inputsI_val, inputsT_val = MSCOCODataset("val").next_batch()
+    elif config.mode == "test":
+        test_dataset = MSCOCODataset("test")
+        ids, inputsI, inputsT = test_dataset.next_batch()
+        count = test_dataset.total_size
+        steps_per_epoch = int(math.ceil(test_dataset.total_size/config.batch_size))
+        ids_val, inputsI_val, inputsT_val = None, None, None
 
     return Examples(
-        paths=paths_batch,
-        inputsX=inputsX_batch,
-        inputsY=inputsY_batch,
-        count=len(input_paths),
+        ids=ids,
+        inputsI=inputsI,
+        inputsT=inputsT,
+        ids_val=ids_val,
+        inputsI_val=inputsI_val,
+        inputsT_val=inputsT_val,
+        count=count,
         steps_per_epoch=steps_per_epoch,
     )
 
-def save_images(fetches, step=None):
-    image_dir = os.path.join(config.output_dir, "images")
-    if not os.path.exists(image_dir):
-        os.makedirs(image_dir)
+def save_results(fetches, step=None):
+    results_dir = os.path.join(config.output_dir, "results")
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
 
     filesets = []
-    for i, in_path in enumerate(fetches["paths"]):
-        name, _ = os.path.splitext(os.path.basename(in_path.decode("utf8")))
+    for i, sample_id in enumerate(fetches["ids"]):
+        # name, _ = os.path.splitext(os.path.basename(in_path.decode("utf8")))
+        name = str(sample_id.decode('utf-8'))
         fileset = {"name": name, "step": step}
-        all_kinds = ["inputsX", "outputsX2Y", "outputsX2Yp",
-                         "auto_outputsX","im_swapped_X", "sel_auto_X","inputsY",
-                         "outputsY2X", "outputsY2Xp","auto_outputsY" ,"im_swapped_Y", "sel_auto_Y"]
+        img_kinds = ["inputsI", "auto_outputsI", "outputsT2I", "outputsT2Ip"]
+        txt_kinds = ["outputsI2T", "outputsI2Tp", "inputsT", "auto_outputsT"]
 
-        for kind in all_kinds:
+        for kind in img_kinds:
             filename = name + "-" + kind + ".png"
             if step is not None:
                 filename = "%08d-%s" % (step, filename)
             fileset[kind] = filename
-            out_path = os.path.join(image_dir, filename)
+            out_path = os.path.join(results_dir, filename)
             contents = fetches[kind][i]
             with open(out_path, "wb") as f:
                 f.write(contents)
+
+        for kind in txt_kinds:
+            filename = name + "-" + kind + ".txt"
+            if step is not None:
+                filename = "%08d-%s" % (step, filename)
+            fileset[kind] = filename
+            out_path = os.path.join(results_dir, filename)
+            contents = fetches[kind][i]
+
+            string = " ".join(contents)
+
+            with open(out_path, "wb") as f:
+                f.write(string)
+
         filesets.append(fileset)
     return filesets
 
 
-def save_features(fetches, step=None):
-    image_dir = os.path.join(config.output_dir, "features")
-    if not os.path.exists(image_dir):
-        os.makedirs(image_dir)
+# def save_features(fetches, step=None):
+#     image_dir = os.path.join(config.output_dir, "features")
+#     if not os.path.exists(image_dir):
+#         os.makedirs(image_dir)
 
-    filesets = []
-    for i, in_path in enumerate(fetches["paths"]):
-        name, _ = os.path.splitext(os.path.basename(in_path.decode("utf8")))
-        fileset = {"name": name, "step": step}
-        filename = name + ".mat"
-        out_path = os.path.join(image_dir, filename)
-        sio.savemat(out_path,{'inX':fetches["inputsX"][i],
-                             'inY':fetches["inputsY"][i],
-                             'sR_X2Y':fetches["sR_X2Y"][i],
-                             'sR_Y2X':fetches["sR_Y2X"][i],
-                             'eR_X2Y':fetches["eR_X2Y"][i],
-                             'eR_Y2X':fetches["eR_Y2X"][i]})
+#     filesets = []
+#     for i, in_path in enumerate(fetches["paths"]):
+#         name, _ = os.path.splitext(os.path.basename(in_path.decode("utf8")))
+#         fileset = {"name": name, "step": step}
+#         filename = name + ".mat"
+#         out_path = os.path.join(image_dir, filename)
+#         sio.savemat(out_path,{'inX':fetches["inputsI"][i],
+#                              'inY':fetches["inputsT"][i],
+#                              'sR_I2T':fetches["sR_I2T"][i],
+#                              'sR_T2I':fetches["sR_T2I"][i],
+#                              'eR_I2T':fetches["eR_I2T"][i],
+#                              'eR_T2I':fetches["eR_T2I"][i]})
 
-
-    return filesets
+#     return filesets
 
 
 def append_index(filesets, step=False):
@@ -97,7 +121,7 @@ def append_index(filesets, step=False):
         index.write("<html><body><table><tr>")
         if step:
             index.write("<th>step</th>")
-        index.write("<th>name</th><th>inX</th><th>out(1)</th><th>out(2)</th><th>auto</th><th>swap</th><th>randomimage</th><th>inY</th><th>out(1)</th><th>out(2)</th><th>auto</th><th>swap</th><th>rnd</th></tr>")
+        index.write("<th>name</th><th>inputsI</th><th>out(1)</th><th>out(2)</th><th>auto</th><th>inputsT</th><th>out(1)</th><th>out(2)</th><th>auto</th></tr>")
 
     for fileset in filesets:
         index.write("<tr>")
@@ -105,12 +129,24 @@ def append_index(filesets, step=False):
         if step:
             index.write("<td>%d</td>" % fileset["step"])
         index.write("<td>%s</td>" % fileset["name"])
-        all_kinds = ["inputsX", "outputsX2Y", "outputsX2Yp",
-                     "auto_outputsX","im_swapped_X", "sel_auto_X","inputsY",
-                     "outputsY2X", "outputsY2Xp","auto_outputsY" ,"im_swapped_Y", "sel_auto_Y"]
+        all_kinds = {
+            "inputsI":"img", 
+            "outputsI2T":"txt", 
+            "outputsI2Tp":"txt",
+            "auto_outputsI":"img",
+            "inputsT":"txt",
+            "outputsT2I":"img", 
+            "outputsT2Ip":"img",
+            "auto_outputsT":"txt"
+        }
 
         for kind in all_kinds:
-            index.write("<td><img src='images/%s'></td>" % fileset[kind])
+            if all_kinds[kind]=="img":
+                index.write("<td><img src='results/%s'></td>" % fileset[kind])
+            else:
+                with open("results/"+fileset[kind], "r") as f:
+                    caption = f.read()
+                    index.write("<td>{}</td>".format(caption))
 
         index.write("</tr>")
     return index_path
@@ -132,190 +168,159 @@ def main():
             raise Exception("checkpoint required for test mode")
 
         # load some options from the checkpoint
-        options = {"which_direction", "ngf", "ndf", "lab_colorization"}
+        options = {"which_direction", "ngfI", "ndfI"}
         with open(os.path.join(config.checkpoint, "options.json")) as f:
             for key, val in json.loads(f.read()).items():
                 if key in options:
                     print("loaded", key, "=", val)
-                    setattr(a, key, val)
-        # disable these features in test mode
-        config.scale_size = CROP_SIZE
-        config.flip = False
+                    setattr(config.a, key, val)
 
     for k, v in config.config._get_kwargs():
         print(k, "=", v)
 
     with open(os.path.join(config.output_dir, "options.json"), "w") as f:
-        f.write(json.dumps(vars(a), sort_keys=True, indent=4))
+        f.write(json.dumps(vars(config.a), sort_keys=True, indent=4))
 
     examples = load_examples()
-    print("examples count = %d" % examples.count)
 
     # inputs and targets are [batch_size, height, width, channels]
-    model = create_model(examples.inputsX, examples.inputsY)
+    model = create_model(examples.inputsI, examples.inputsT)
 
     # undo colorization splitting on images that we use for display/output
-    inputsX = deprocess(examples.inputsX)
-    inputsY = deprocess(examples.inputsY)
-    outputsX2Y = deprocess(model.outputsX2Y)
-    outputsY2X = deprocess(model.outputsY2X)
-    outputsX2Yp = deprocess(model.outputsX2Yp)
-    outputsY2Xp = deprocess(model.outputsY2Xp)
-    outputs_exclusiveX2Y = deprocess(model.outputs_exclusiveX2Y)
-    outputs_exclusiveY2X = deprocess(model.outputs_exclusiveY2X)
-    auto_outputX = deprocess(model.auto_outputX)
-    auto_outputY = deprocess(model.auto_outputY)
-    im_swapped_X = deprocess(model.im_swapped_X)
-    im_swapped_Y = deprocess(model.im_swapped_Y)
-    sel_auto_X = deprocess(model.sel_auto_X)
-    sel_auto_Y = deprocess(model.sel_auto_Y)
-    sR_X2Y = model.sR_X2Y
-    sR_Y2X = model.sR_Y2X
-    eR_X2Y = model.eR_X2Y
-    eR_Y2X = model.eR_Y2X
+    inputsI = deprocess(examples.inputsI)
+    inputsT = deprocess(examples.inputsT)
+    outputsI2T = deprocess(model.outputsI2T)
+    outputsT2I = deprocess(model.outputsT2I)
+    outputsI2Tp = deprocess(model.outputsI2Tp)
+    outputsT2Ip = deprocess(model.outputsT2Ip)
+    outputs_exclusiveI2T = deprocess(model.outputs_exclusiveI2T)
+    outputs_exclusiveT2I = deprocess(model.outputs_exclusiveT2I)
+    auto_outputI = deprocess(model.auto_outputI)
+    auto_outputT = deprocess(model.auto_outputT)
+    im_swapped_I = deprocess(model.im_swapped_I)
+    im_swapped_T = deprocess(model.im_swapped_T)
+    sel_auto_I = deprocess(model.sel_auto_I)
+    sel_auto_T = deprocess(model.sel_auto_T)
+    sR_I2T = model.sR_I2T
+    sR_T2I = model.sR_T2I
+    eR_I2T = model.eR_I2T
+    eR_T2I = model.eR_T2I
 
-    def convert(image):
-        if config.aspect_ratio != 1.0:
-            # upscale to correct aspect ratio
-            size = [CROP_SIZE, int(round(CROP_SIZE * config.aspect_ratio))]
-            image = tf.image.resize_images(image, size=size, method=tf.image.ResizeMethod.BICUBIC)
-
+    def convert_img(image):
         return tf.image.convert_image_dtype(image, dtype=tf.uint8, saturate=True)
 
-    # reverse any processing on images so they can be written to disk or displayed to user
-    with tf.name_scope("convert_inputsX"):
-        converted_inputsX = convert(inputsX)
+    def convert_txt(one_hot_vectors):
+        index_vectors = tf.argmax(one_hot_vectors, axis=1)
 
-    with tf.name_scope("convert_inputsY"):
-        converted_inputsY = convert(inputsY)
+        def sample_stringifier(index_vector):
+            def word_stringifier(index):
+                return vocabulary.get_word(index)
+            return tf.map_fn(word_stringifier, index_vector, dtype=tf.string)
 
-    with tf.name_scope("convert_outputsX2Y"):
-        converted_outputsX2Y = convert(outputsX2Y)
+        return tf.map_fn(sample_stringifier, index_vectors, dtype=tf.string)
 
-    with tf.name_scope("convert_outputsY2X"):
-        converted_outputsY2X = convert(outputsY2X)
 
-    with tf.name_scope("convert_outputsX2Yp"):
-        converted_outputsX2Yp = convert(outputsX2Yp)
+    # reverse any processing on images and text so they can be written to disk or displayed to user
+    with tf.name_scope("convert_inputsI"):
+        converted_inputsI = convert_img(inputsI)
 
-    with tf.name_scope("convert_outputsY2Xp"):
-        converted_outputsY2Xp = convert(outputsY2Xp)
+    with tf.name_scope("convert_inputsT"):
+        converted_inputsT = convert_txt(inputsT)
 
-    with tf.name_scope("convert_outputs_exclusiveX2Y"):
-        converted_outputs_exclusiveX2Y = convert(outputs_exclusiveX2Y)
+    with tf.name_scope("convert_outputsI2T"):
+        converted_outputsI2T = convert_txt(outputsI2T)
 
-    with tf.name_scope("convert_outputs_exclusiveY2X"):
-        converted_outputs_exclusiveY2X = convert(outputs_exclusiveY2X)
+    with tf.name_scope("convert_outputsT2I"):
+        converted_outputsT2I = convert_img(outputsT2I)
 
-    with tf.name_scope("convert_auto_outputsX"):
-        converted_auto_outputX = convert(auto_outputX)
+    with tf.name_scope("convert_outputsI2Tp"):
+        converted_outputsI2Tp = convert_txt(outputsI2Tp)
 
-    with tf.name_scope("convert_auto_outputsY"):
-        converted_auto_outputY = convert(auto_outputY)
+    with tf.name_scope("convert_outputsT2Ip"):
+        converted_outputsT2Ip = convert_img(outputsT2Ip)
 
-    with tf.name_scope("convert_im_swapped_Y"):
-        converted_im_swapped_Y = convert(im_swapped_Y)
+    with tf.name_scope("convert_outputs_exclusiveI2T"):
+        converted_outputs_exclusiveI2T = convert_txt(outputs_exclusiveI2T)
 
-    with tf.name_scope("convert_sel_auto_Y"):
-        converted_sel_auto_Y= convert(sel_auto_Y)
+    with tf.name_scope("convert_outputs_exclusiveT2I"):
+        converted_outputs_exclusiveT2I = convert_img(outputs_exclusiveT2I)
 
-    with tf.name_scope("convert_im_swapped_X"):
-        converted_im_swapped_X = convert(im_swapped_X)
+    with tf.name_scope("convert_auto_outputsI"):
+        converted_auto_outputI = convert_img(auto_outputI)
 
-    with tf.name_scope("convert_sel_auto_X"):
-        converted_sel_auto_X= convert(sel_auto_X)
+    with tf.name_scope("convert_auto_outputsT"):
+        converted_auto_outputT = convert_txt(auto_outputT)
 
-    with tf.name_scope("encode_images"):
+    with tf.name_scope("encode_data"):
         display_fetches = {
-            "paths": examples.paths,
-            "inputsX": tf.map_fn(tf.image.encode_png, converted_inputsX, dtype=tf.string, name="inputX_pngs"),
-            "inputsY": tf.map_fn(tf.image.encode_png, converted_inputsY, dtype=tf.string, name="inputY_pngs"),
-            "outputsX2Y": tf.map_fn(tf.image.encode_png, converted_outputsX2Y, dtype=tf.string, name="outputX2Y_pngs"),
-            "outputsY2X": tf.map_fn(tf.image.encode_png, converted_outputsY2X, dtype=tf.string, name="outputY2X_pngs"),
-            "outputsX2Yp": tf.map_fn(tf.image.encode_png, converted_outputsX2Yp, dtype=tf.string, name="outputX2Yp_pngs"),
-            "outputsY2Xp": tf.map_fn(tf.image.encode_png, converted_outputsY2Xp, dtype=tf.string, name="outputY2Xp_pngs"),
-            "outputs_exclusiveX2Y": tf.map_fn(tf.image.encode_png, converted_outputs_exclusiveX2Y, dtype=tf.string, name="output_exclusiveX2Y_pngs"),
-            "outputs_exclusiveY2X": tf.map_fn(tf.image.encode_png, converted_outputs_exclusiveY2X, dtype=tf.string, name="output_exclusiveY2X_pngs"),
-            "auto_outputsX": tf.map_fn(tf.image.encode_png, converted_auto_outputX, dtype=tf.string, name="auto_outputX_pngs"),
-            "auto_outputsY": tf.map_fn(tf.image.encode_png, converted_auto_outputY, dtype=tf.string, name="auto_outputY_pngs"),
-            "im_swapped_Y": tf.map_fn(tf.image.encode_png, converted_im_swapped_Y, dtype=tf.string, name="im_swapped_Y_pngs"),
-            "sel_auto_Y": tf.map_fn(tf.image.encode_png, converted_sel_auto_Y, dtype=tf.string, name="sel_auto_Y_pngs"),
-            "im_swapped_X": tf.map_fn(tf.image.encode_png, converted_im_swapped_X, dtype=tf.string, name="im_swapped_X_pngs"),
-            "sel_auto_X": tf.map_fn(tf.image.encode_png, converted_sel_auto_X, dtype=tf.string, name="sel_auto_X_pngs"),
+            "ids": examples.ids,
+            "inputsI": tf.map_fn(tf.image.encode_png, converted_inputsI, dtype=tf.string, name="inputI_pngs"),
+            "inputsT": tf.map_fn(tf.image.encode_png, converted_inputsT, dtype=tf.string, name="inputT_pngs"),
+            "outputsI2T": tf.map_fn(tf.image.encode_png, converted_outputsI2T, dtype=tf.string, name="outputI2T_pngs"),
+            "outputsT2I": tf.map_fn(tf.image.encode_png, converted_outputsT2I, dtype=tf.string, name="outputT2I_pngs"),
+            "outputsI2Tp": tf.map_fn(tf.image.encode_png, converted_outputsI2Tp, dtype=tf.string, name="outputI2Tp_pngs"),
+            "outputsT2Ip": tf.map_fn(tf.image.encode_png, converted_outputsT2Ip, dtype=tf.string, name="outputT2Ip_pngs"),
+            "outputs_exclusiveI2T": tf.map_fn(tf.image.encode_png, converted_outputs_exclusiveI2T, dtype=tf.string, name="output_exclusiveI2T_pngs"),
+            "outputs_exclusiveT2I": tf.map_fn(tf.image.encode_png, converted_outputs_exclusiveT2I, dtype=tf.string, name="output_exclusiveT2I_pngs"),
+            "auto_outputsI": tf.map_fn(tf.image.encode_png, converted_auto_outputI, dtype=tf.string, name="auto_outputI_pngs"),
+            "auto_outputsT": tf.map_fn(tf.image.encode_png, converted_auto_outputT, dtype=tf.string, name="auto_outputT_pngs"),
         }
-    with tf.name_scope("extract_features"):
-        features_fetches = {
-            "paths": examples.paths,
-            "inputsX": converted_inputsX,
-            "sR_X2Y": sR_X2Y,
-            "eR_X2Y": eR_X2Y,
-            "inputsY": converted_inputsY,
-            "sR_Y2X": sR_Y2X,
-            "eR_Y2X": eR_Y2X,
-        }
+    # with tf.name_scope("extract_features"):
+    #     features_fetches = {
+    #         "ids": examples.ids,
+    #         "inputsI": converted_inputsI,
+    #         "sR_I2T": sR_I2T,
+    #         "eR_I2T": eR_I2T,
+    #         "inputsT": converted_inputsT,
+    #         "sR_T2I": sR_T2I,
+    #         "eR_T2I": eR_T2I,
+    #     }
 
     # summaries
-    with tf.name_scope("X1_input_summary"):
-        tf.summary.image("inputsX", converted_inputsX,max_outputs=3)
+    with tf.name_scope("I1_input_summary"):
+        tf.summary.image("inputsI", converted_inputsI,max_outputs=3)
 
-    with tf.name_scope("Y1_input_summary"):
-        tf.summary.image("inputsY", converted_inputsY,max_outputs=3)
+    with tf.name_scope("T1_input_summary"):
+        tf.summary.text("inputsT", converted_inputsT,max_outputs=3)
 
-    with tf.name_scope("X2Y_output_summary"):
-        tf.summary.image("outputsX2Y", converted_outputsX2Y,max_outputs=3)
+    with tf.name_scope("I2T_output_summary"):
+        tf.summary.text("outputsI2T", converted_outputsI2T,max_outputs=3)
 
-    with tf.name_scope("Y2X_outpu2_summary"):
-        tf.summary.image("outputsY2X", converted_outputsY2X,max_outputs=3)
+    with tf.name_scope("T2I_output_summary"):
+        tf.summary.image("outputsT2I", converted_outputsT2I,max_outputs=3)
 
-    with tf.name_scope("X_autoencoder_summary"):
-        tf.summary.image("auto_outputX", converted_auto_outputX,max_outputs=3)
+    with tf.name_scope("I_autoencoder_summary"):
+        tf.summary.image("auto_outputI", converted_auto_outputI,max_outputs=3)
 
-    with tf.name_scope("Y_autoencoder_summary"):
-        tf.summary.image("auto_outputY", converted_auto_outputY,max_outputs=3)
-
-    with tf.name_scope("swapped_1Y_summary"):
-        tf.summary.image("im_swapped_Y", converted_im_swapped_Y,max_outputs=3)
-        tf.summary.image("sel_auto_Y", converted_sel_auto_Y,max_outputs=3)
-
-    with tf.name_scope("swapped_2X_summary"):
-        tf.summary.image("im_swapped_X", converted_im_swapped_X,max_outputs=3)
-        tf.summary.image("sel_auto_X", converted_sel_auto_X,max_outputs=3)
+    with tf.name_scope("T_autoencoder_summary"):
+        tf.summary.text("auto_outputT", converted_auto_outputT,max_outputs=3)
 
     with tf.name_scope("otherNoise_output_summary"):
-        tf.summary.image("outputsX2Yp", converted_outputsX2Yp,max_outputs=3)
-        tf.summary.image("outputsY2Xp", converted_outputsY2Xp,max_outputs=3)
+        tf.summary.text("outputsI2Tp", converted_outputsI2Tp,max_outputs=3)
+        tf.summary.image("outputsT2Ip", converted_outputsT2Ip,max_outputs=3)
 
-    with tf.name_scope("zzexclusive_X2Y_summary"):
-        tf.summary.image("outputsX2Y", converted_outputs_exclusiveX2Y,max_outputs=3)
+    with tf.name_scope("zzexclusive_I2T_summary"):
+        tf.summary.text("outputsI2T", converted_outputs_exclusiveI2T,max_outputs=3)
 
-    with tf.name_scope("zzexclusive_Y2X_summary"):
-        tf.summary.image("outputsY2X", converted_outputs_exclusiveY2X,max_outputs=3)
+    with tf.name_scope("zzexclusive_T2I_summary"):
+        tf.summary.image("outputsT2I", converted_outputs_exclusiveT2I,max_outputs=3)
 
-    tf.summary.scalar("discriminatorX2Y_loss", model.discrimX2Y_loss)
-    tf.summary.scalar("discriminatorY2X_loss", model.discrimY2X_loss)
-    tf.summary.scalar("generatorX2Y_loss", model.genX2Y_loss)
-    tf.summary.scalar("generatorY2X_loss", model.genY2X_loss)
-    tf.summary.scalar("generator_exclusiveX2Y_loss", model.gen_exclusiveX2Y_loss)
-    tf.summary.scalar("discriminator_exclusiveX2Y_loss", model.discrim_exclusiveX2Y_loss)
-    tf.summary.scalar("generator_exclusiveY2X_loss", model.gen_exclusiveY2X_loss)
-    tf.summary.scalar("discriminator_exclusiveY2X_loss", model.discrim_exclusiveY2X_loss)
-    tf.summary.scalar("autoencoderX_loss", model.autoencoderX_loss)
-    tf.summary.scalar("autoencoderY_loss", model.autoencoderY_loss)
+    tf.summary.scalar("discriminatorI2T_loss", model.discrimI2T_loss)
+    tf.summary.scalar("discriminatorT2I_loss", model.discrimT2I_loss)
+    tf.summary.scalar("generatorI2T_loss", model.genI2T_loss)
+    tf.summary.scalar("generatorT2I_loss", model.genT2I_loss)
+    tf.summary.scalar("generator_exclusiveI2T_loss", model.gen_exclusiveI2T_loss)
+    tf.summary.scalar("discriminator_exclusiveI2T_loss", model.discrim_exclusiveI2T_loss)
+    tf.summary.scalar("generator_exclusiveT2I_loss", model.gen_exclusiveT2I_loss)
+    tf.summary.scalar("discriminator_exclusiveT2I_loss", model.discrim_exclusiveT2I_loss)
+    tf.summary.scalar("autoencoderI_loss", model.autoencoderI_loss)
+    tf.summary.scalar("autoencoderT_loss", model.autoencoderT_loss)
     tf.summary.scalar("feat_recon_loss", model.feat_recon_loss)
-    tf.summary.scalar("code_sR_X2Y_recon_loss", model.code_sR_X2Y_recon_loss)
-    tf.summary.scalar("code_sR_Y2X_recon_loss", model.code_sR_Y2X_recon_loss)
-    tf.summary.scalar("code_eR_X2Y_recon_loss", model.code_eR_X2Y_recon_loss)
-    tf.summary.scalar("code_eR_Y2X_recon_loss", model.code_eR_Y2X_recon_loss)
+    tf.summary.scalar("code_sR_I2T_recon_loss", model.code_sR_I2T_recon_loss)
+    tf.summary.scalar("code_sR_T2I_recon_loss", model.code_sR_T2I_recon_loss)
+    tf.summary.scalar("code_eR_I2T_recon_loss", model.code_eR_I2T_recon_loss)
+    tf.summary.scalar("code_eR_T2I_recon_loss", model.code_eR_T2I_recon_loss)
     tf.summary.scalar("code_recon_loss", model.code_recon_loss)
-
-    #for var in tf.trainable_variables():
-        #tf.summary.histogram(var.op.name + "/values", var)
-
-    #for grad, var in model.discrimX2Y_grads_and_vars + model.genX2Y_grads_and_vars:
-        #tf.summary.histogram(var.op.name + "/gradientsX2Y", grad)
-
-    #for grad, var in model.discrimY2X_grads_and_vars + model.genY2X_grads_and_vars:
-        #tf.summary.histogram(var.op.name + "/gradientsY2X", grad)
 
     with tf.name_scope("parameter_count"):
         parameter_count = tf.reduce_sum([tf.reduce_prod(tf.shape(v)) for v in tf.trainable_variables()])
@@ -346,18 +351,18 @@ def main():
             max_steps = min(examples.steps_per_epoch, max_steps)
             for step in range(max_steps):
                 results = sess.run(display_fetches)
-                filesets = save_images(results)
+                filesets = save_results(results)
                 for i, f in enumerate(filesets):
                     print("evaluated image", f["name"])
                 index_path = append_index(filesets)
             print("wrote index at", index_path)
             print("rate", (time.time() - start) / max_steps)
 
-        elif config.mode == "features":
-            max_steps = min(examples.steps_per_epoch, max_steps)
-            for step in range(max_steps):
-                results = sess.run(features_fetches)
-                save_features(results)
+        # elif config.mode == "features":
+        #     max_steps = min(examples.steps_per_epoch, max_steps)
+        #     for step in range(max_steps):
+        #         results = sess.run(features_fetches)
+        #         save_features(results)
         else:
             # training
             start = time.time()
@@ -379,12 +384,12 @@ def main():
                 }
 
                 if should(config.progress_freq):
-                    fetches["discrimX2Y_loss"] = model.discrimX2Y_loss
-                    fetches["discrimY2X_loss"] = model.discrimY2X_loss
-                    fetches["genX2Y_loss"] = model.genX2Y_loss
-                    fetches["genY2X_loss"] = model.genY2X_loss
-                    fetches["autoencoderX_loss"] = model.autoencoderX_loss
-                    fetches["autoencoderY_loss"] = model.autoencoderY_loss
+                    fetches["discrimI2T_loss"] = model.discrimI2T_loss
+                    fetches["discrimT2I_loss"] = model.discrimT2I_loss
+                    fetches["genI2T_loss"] = model.genI2T_loss
+                    fetches["genT2I_loss"] = model.genT2I_loss
+                    fetches["autoencoderI_loss"] = model.autoencoderI_loss
+                    fetches["autoencoderT_loss"] = model.autoencoderT_loss
                     fetches["code_recon_loss"] = model.code_recon_loss
                     fetches["feat_recon_loss"] = model.feat_recon_loss
 
@@ -402,7 +407,7 @@ def main():
 
                 if should(config.display_freq):
                     print("saving display images")
-                    filesets = save_images(results["display"], step=results["global_step"])
+                    filesets = save_results(results["display"], step=results["global_step"])
                     append_index(filesets, step=True)
 
                 if should(config.trace_freq):
@@ -416,12 +421,12 @@ def main():
                     rate = (step + 1) * config.batch_size / (time.time() - start)
                     remaining = (max_steps - step) * config.batch_size / rate
                     print("progress  epoch %d  step %d  image/sec %0.1f  remaining %dm" % (train_epoch, train_step, rate, remaining / 60))
-                    print("discrimX2Y_loss", results["discrimX2Y_loss"])
-                    print("discrimY2X_loss", results["discrimY2X_loss"])
-                    print("genX2Y_loss", results["genX2Y_loss"])
-                    print("genY2X_loss", results["genY2X_loss"])
-                    print("autoencoderX_loss", results["autoencoderX_loss"])
-                    print("autoencoderY_loss", results["autoencoderY_loss"])
+                    print("discrimI2T_loss", results["discrimI2T_loss"])
+                    print("discrimT2I_loss", results["discrimT2I_loss"])
+                    print("genI2T_loss", results["genI2T_loss"])
+                    print("genT2I_loss", results["genT2I_loss"])
+                    print("autoencoderI_loss", results["autoencoderI_loss"])
+                    print("autoencoderT_loss", results["autoencoderT_loss"])
                     print("code_recon_loss", results["code_recon_loss"])
                     print("feat_recon_loss", results["feat_recon_loss"])
 

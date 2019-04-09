@@ -101,3 +101,5 @@
 ```bash
 $ python build_mscoco_data.py --train_image_dir /home/ubuntu/everything/mscoco/train2014 --val_image_dir /home/ubuntu/everything/mscoco/val2014 --train_captions_file /home/ubuntu/everything/mscoco/annotations/captions_train2014.json --val_captions_file /home/ubuntu/everything/mscoco/annotations/captions_val2014.json --output_dir /home/ubuntu/everything/mscoco/output_dir
 ```
+## Notes:
+	- Truncating captions to 32 words. 
