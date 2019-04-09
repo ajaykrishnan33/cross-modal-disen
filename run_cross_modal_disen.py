@@ -16,6 +16,7 @@ import os
 import config
 
 from data_ops import MSCOCODataset, Vocabulary
+from tqdm import tqdm
 
 CROP_SIZE = 256
 
@@ -365,7 +366,7 @@ def main():
             # training
             start = time.time()
 
-            for step in range(max_steps):
+            for step in tqdm(range(max_steps)):
                 def should(freq):
                     return freq > 0 and ((step + 1) % freq == 0 or step == max_steps - 1)
 
