@@ -11,12 +11,14 @@ class Vocabulary:
                 word = sentence.strip().split(" ")[0]
                 temp.append(word)
 
-        config.vocab_size = len(temp) + 1 # one extra for the padding character with id: 0
+        config.vocab_size = len(temp) + 2 # one extra each for the padding character and the unknown character
         self._id_to_word = tf.constant(temp, dtype=tf.string)
 
     def get_word(self, id):
         if id==0:
             return ""
+        elif id==config.vocab_size-1:
+            return "<UNK>"
         return self._id_to_word[id-1]
 
 class MSCOCODataset:
