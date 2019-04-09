@@ -383,8 +383,8 @@ def _create_vocab(captions):
 
     # Create the vocabulary dictionary.
     reverse_vocab = [x[0] for x in word_counts]
-    unk_id = len(reverse_vocab)
-    vocab_dict = dict([(x, y) for (y, x) in enumerate(reverse_vocab)])
+    unk_id = len(reverse_vocab) + 1
+    vocab_dict = dict([(x, y+1) for (y, x) in enumerate(reverse_vocab)])
     vocab = Vocabulary(vocab_dict, unk_id)
 
     return vocab
