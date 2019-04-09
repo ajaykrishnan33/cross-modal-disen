@@ -253,15 +253,15 @@ def main():
         display_fetches = {
             "ids": examples.ids,
             "inputsI": tf.map_fn(tf.image.encode_png, converted_inputsI, dtype=tf.string, name="inputI_pngs"),
-            "inputsT": tf.map_fn(tf.image.encode_png, converted_inputsT, dtype=tf.string, name="inputT_pngs"),
-            "outputsI2T": tf.map_fn(tf.image.encode_png, converted_outputsI2T, dtype=tf.string, name="outputI2T_pngs"),
+            "inputsT": converted_inputsT,
+            "outputsI2T": converted_outputsI2T,
             "outputsT2I": tf.map_fn(tf.image.encode_png, converted_outputsT2I, dtype=tf.string, name="outputT2I_pngs"),
-            "outputsI2Tp": tf.map_fn(tf.image.encode_png, converted_outputsI2Tp, dtype=tf.string, name="outputI2Tp_pngs"),
+            "outputsI2Tp": converted_outputsI2Tp,
             "outputsT2Ip": tf.map_fn(tf.image.encode_png, converted_outputsT2Ip, dtype=tf.string, name="outputT2Ip_pngs"),
-            "outputs_exclusiveI2T": tf.map_fn(tf.image.encode_png, converted_outputs_exclusiveI2T, dtype=tf.string, name="output_exclusiveI2T_pngs"),
+            "outputs_exclusiveI2T": converted_outputs_exclusiveI2T,
             "outputs_exclusiveT2I": tf.map_fn(tf.image.encode_png, converted_outputs_exclusiveT2I, dtype=tf.string, name="output_exclusiveT2I_pngs"),
             "auto_outputsI": tf.map_fn(tf.image.encode_png, converted_auto_outputI, dtype=tf.string, name="auto_outputI_pngs"),
-            "auto_outputsT": tf.map_fn(tf.image.encode_png, converted_auto_outputT, dtype=tf.string, name="auto_outputT_pngs"),
+            "auto_outputsT": converted_auto_outputT
         }
     # with tf.name_scope("extract_features"):
     #     features_fetches = {
