@@ -2,6 +2,11 @@ import tensorflow as tf
 import config
 from special_ops import conv1d_transpose_special
 
+def deprocess(image):
+    with tf.name_scope("deprocess"):
+        # [-1, 1] => [0, 1]
+        return (image + 1) / 2
+
 @tf.RegisterGradient("ReverseGrad")
 def _reverse_grad(unused_op, grad):
     return -1.0*grad

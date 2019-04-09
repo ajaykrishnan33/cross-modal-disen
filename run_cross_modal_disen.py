@@ -188,19 +188,15 @@ def main():
 
     # undo colorization splitting on images that we use for display/output
     inputsI = deprocess(examples.inputsI)
-    inputsT = deprocess(examples.inputsT)
-    outputsI2T = deprocess(model.outputsI2T)
+    inputsT = examples.inputsT
+    outputsI2T = model.outputsI2T
     outputsT2I = deprocess(model.outputsT2I)
-    outputsI2Tp = deprocess(model.outputsI2Tp)
+    outputsI2Tp = model.outputsI2Tp
     outputsT2Ip = deprocess(model.outputsT2Ip)
-    outputs_exclusiveI2T = deprocess(model.outputs_exclusiveI2T)
+    outputs_exclusiveI2T = model.outputs_exclusiveI2T
     outputs_exclusiveT2I = deprocess(model.outputs_exclusiveT2I)
     auto_outputI = deprocess(model.auto_outputI)
-    auto_outputT = deprocess(model.auto_outputT)
-    im_swapped_I = deprocess(model.im_swapped_I)
-    im_swapped_T = deprocess(model.im_swapped_T)
-    sel_auto_I = deprocess(model.sel_auto_I)
-    sel_auto_T = deprocess(model.sel_auto_T)
+    auto_outputT = model.auto_outputT
     sR_I2T = model.sR_I2T
     sR_T2I = model.sR_T2I
     eR_I2T = model.eR_I2T
