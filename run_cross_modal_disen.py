@@ -175,7 +175,7 @@ def main():
                     print("loaded", key, "=", val)
                     setattr(config.a, key, val)
 
-    for k, v in config.config._get_kwargs():
+    for k, v in config._get_kwargs():
         print(k, "=", v)
 
     with open(os.path.join(config.output_dir, "options.json"), "w") as f:
