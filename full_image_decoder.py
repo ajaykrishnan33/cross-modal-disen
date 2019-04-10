@@ -28,7 +28,7 @@ def create_full_image_decoder(sR, eR, generator_outputs_channels, noise = True):
 
 
     with tf.variable_scope("decoder_fc1"):
-        fc1_output = gen_fc(initial_input, out_channels=8192) #4096
+        fc1_output = gen_fc(initial_input, out_channels=4*4*config.ngfI*8) #4096
         rectified = lrelu(fc1_output, 0.2)
         fc1_bn = batchnorm(rectified, axis=1)
 
