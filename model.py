@@ -403,3 +403,7 @@ if __name__ == "__main__":
     val_dataset = MSCOCODataset("val")
     ids, inputsI, inputsT = val_dataset.next_batch()
     model = create_model(inputsI, inputsT)
+    sess = tf.Session()
+    print("Going to run session")
+    results = sess.run(model.train)
+    print("Finished running session")

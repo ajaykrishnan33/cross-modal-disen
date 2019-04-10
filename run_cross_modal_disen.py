@@ -329,8 +329,9 @@ def main():
 
     logdir = config.output_dir if (config.trace_freq > 0 or config.summary_freq > 0) else None
     sv = tf.train.Supervisor(logdir=logdir, save_summaries_secs=0, saver=None)
-    with sv.managed_session(config=tf.ConfigProto(
-      allow_soft_placement=True, log_device_placement=True)) as sess:
+    sess_config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=False)
+    sess_config.gpu_options.allow_growth = True
+    with sv.managed_session(config=sess_config) as sess:
         # print("parameter_count =", sess.run(parameter_count))
         print("Started session")
         if config.checkpoint is not None:
