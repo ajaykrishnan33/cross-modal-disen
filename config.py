@@ -52,7 +52,7 @@ class Config:
 
         self.a.img_output_dim = self.a.image_size*self.a.image_size*3 # 256x256x3
 
-        self.a.wrl = 256
+        self.a.wrl = 128
 
         self.a.text_size = (self.a.max_length, self.a.wrl)
 

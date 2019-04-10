@@ -21,7 +21,7 @@ def create_exclusive_text_decoder(eR):
         g = tf.get_default_graph()
         with g.gradient_override_map({"Identity": "ReverseGrad"}):
             initial_input = tf.identity(initial_input)
-        fc1_output = gen_fc(initial_input, out_channels=8192) #4096
+        fc1_output = gen_fc(initial_input, out_channels=config.wrl*32) #4096
         rectified = tf.nn.relu(fc1_output)
         fc1_bn = batchnorm(rectified, axis=1)
 
