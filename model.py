@@ -404,6 +404,8 @@ if __name__ == "__main__":
     ids, inputsI, inputsT = val_dataset.next_batch()
     model = create_model(inputsI, inputsT)
     sess = tf.Session()
+    print("Going to initialize variables")
+    sess.run(tf.global_variables_initializer())
     print("Going to run session")
     results = sess.run(model.train)
     print("Finished running session")
