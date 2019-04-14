@@ -277,50 +277,50 @@ def main():
     #     }
 
     # summaries
-    with tf.name_scope("I1_input_summary"):
-        tf.summary.image("inputsI", converted_inputsI,max_outputs=3)
+    # with tf.name_scope("I1_input_summary"):
+    #     tf.summary.image("inputsI", converted_inputsI,max_outputs=3)
 
-    with tf.name_scope("T1_input_summary"):
-        tf.summary.text("inputsT", converted_inputsT)
+    # with tf.name_scope("T1_input_summary"):
+    #     tf.summary.text("inputsT", converted_inputsT)
 
-    with tf.name_scope("I2T_output_summary"):
-        tf.summary.text("outputsI2T", converted_outputsI2T)
+    # with tf.name_scope("I2T_output_summary"):
+    #     tf.summary.text("outputsI2T", converted_outputsI2T)
 
-    with tf.name_scope("T2I_output_summary"):
-        tf.summary.image("outputsT2I", converted_outputsT2I,max_outputs=3)
+    # with tf.name_scope("T2I_output_summary"):
+    #     tf.summary.image("outputsT2I", converted_outputsT2I,max_outputs=3)
 
-    with tf.name_scope("I_autoencoder_summary"):
-        tf.summary.image("auto_outputI", converted_auto_outputI,max_outputs=3)
+    # with tf.name_scope("I_autoencoder_summary"):
+    #     tf.summary.image("auto_outputI", converted_auto_outputI,max_outputs=3)
 
-    with tf.name_scope("T_autoencoder_summary"):
-        tf.summary.text("auto_outputT", converted_auto_outputT)
+    # with tf.name_scope("T_autoencoder_summary"):
+    #     tf.summary.text("auto_outputT", converted_auto_outputT)
 
-    with tf.name_scope("otherNoise_output_summary"):
-        tf.summary.text("outputsI2Tp", converted_outputsI2Tp)
-        tf.summary.image("outputsT2Ip", converted_outputsT2Ip,max_outputs=3)
+    # with tf.name_scope("otherNoise_output_summary"):
+    #     tf.summary.text("outputsI2Tp", converted_outputsI2Tp)
+    #     tf.summary.image("outputsT2Ip", converted_outputsT2Ip,max_outputs=3)
 
-    with tf.name_scope("zzexclusive_I2T_summary"):
-        tf.summary.text("outputsI2T", converted_outputs_exclusiveI2T)
+    # with tf.name_scope("zzexclusive_I2T_summary"):
+    #     tf.summary.text("outputsI2T", converted_outputs_exclusiveI2T)
 
-    with tf.name_scope("zzexclusive_T2I_summary"):
-        tf.summary.image("outputsT2I", converted_outputs_exclusiveT2I,max_outputs=3)
+    # with tf.name_scope("zzexclusive_T2I_summary"):
+    #     tf.summary.image("outputsT2I", converted_outputs_exclusiveT2I,max_outputs=3)
 
-    tf.summary.scalar("discriminatorI2T_loss", model.discrimI2T_loss)
-    tf.summary.scalar("discriminatorT2I_loss", model.discrimT2I_loss)
-    tf.summary.scalar("generatorI2T_loss", model.genI2T_loss)
-    tf.summary.scalar("generatorT2I_loss", model.genT2I_loss)
-    tf.summary.scalar("generator_exclusiveI2T_loss", model.gen_exclusiveI2T_loss)
-    tf.summary.scalar("discriminator_exclusiveI2T_loss", model.discrim_exclusiveI2T_loss)
-    tf.summary.scalar("generator_exclusiveT2I_loss", model.gen_exclusiveT2I_loss)
-    tf.summary.scalar("discriminator_exclusiveT2I_loss", model.discrim_exclusiveT2I_loss)
-    tf.summary.scalar("autoencoderI_loss", model.autoencoderI_loss)
-    tf.summary.scalar("autoencoderT_loss", model.autoencoderT_loss)
-    tf.summary.scalar("feat_recon_loss", model.feat_recon_loss)
-    tf.summary.scalar("code_sR_I2T_recon_loss", model.code_sR_I2T_recon_loss)
-    tf.summary.scalar("code_sR_T2I_recon_loss", model.code_sR_T2I_recon_loss)
-    tf.summary.scalar("code_eR_I2T_recon_loss", model.code_eR_I2T_recon_loss)
-    tf.summary.scalar("code_eR_T2I_recon_loss", model.code_eR_T2I_recon_loss)
-    tf.summary.scalar("code_recon_loss", model.code_recon_loss)
+    # tf.summary.scalar("discriminatorI2T_loss", model.discrimI2T_loss)
+    # tf.summary.scalar("discriminatorT2I_loss", model.discrimT2I_loss)
+    # tf.summary.scalar("generatorI2T_loss", model.genI2T_loss)
+    # tf.summary.scalar("generatorT2I_loss", model.genT2I_loss)
+    # tf.summary.scalar("generator_exclusiveI2T_loss", model.gen_exclusiveI2T_loss)
+    # tf.summary.scalar("discriminator_exclusiveI2T_loss", model.discrim_exclusiveI2T_loss)
+    # tf.summary.scalar("generator_exclusiveT2I_loss", model.gen_exclusiveT2I_loss)
+    # tf.summary.scalar("discriminator_exclusiveT2I_loss", model.discrim_exclusiveT2I_loss)
+    # tf.summary.scalar("autoencoderI_loss", model.autoencoderI_loss)
+    # tf.summary.scalar("autoencoderT_loss", model.autoencoderT_loss)
+    # tf.summary.scalar("feat_recon_loss", model.feat_recon_loss)
+    # tf.summary.scalar("code_sR_I2T_recon_loss", model.code_sR_I2T_recon_loss)
+    # tf.summary.scalar("code_sR_T2I_recon_loss", model.code_sR_T2I_recon_loss)
+    # tf.summary.scalar("code_eR_I2T_recon_loss", model.code_eR_I2T_recon_loss)
+    # tf.summary.scalar("code_eR_T2I_recon_loss", model.code_eR_T2I_recon_loss)
+    # tf.summary.scalar("code_recon_loss", model.code_recon_loss)
 
     with tf.name_scope("parameter_count"):
 
@@ -398,17 +398,17 @@ def main():
                     fetches["code_recon_loss"] = model.code_recon_loss
                     fetches["feat_recon_loss"] = model.feat_recon_loss
 
-                if should(config.summary_freq):
-                    fetches["summary"] = sv.summary_op
+                # if should(config.summary_freq):
+                #     fetches["summary"] = sv.summary_op
 
                 if should(config.display_freq):
                     fetches["display"] = display_fetches
 
                 results = sess.run(fetches, options=options, run_metadata=run_metadata)
 
-                if should(config.summary_freq):
-                    print("recording summary")
-                    sv.summary_writer.add_summary(results["summary"], results["global_step"])
+                # if should(config.summary_freq):
+                #     print("recording summary")
+                #     sv.summary_writer.add_summary(results["summary"], results["global_step"])
 
                 if should(config.display_freq):
                     print("saving display images")
