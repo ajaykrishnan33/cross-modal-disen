@@ -276,7 +276,7 @@ def main():
     #         "eR_T2I": eR_T2I,
     #     }
 
-    summaries
+    # summaries
     with tf.name_scope("I1_input_summary"):
         tf.summary.image("inputsI", converted_inputsI,max_outputs=3)
 
