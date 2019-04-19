@@ -93,9 +93,11 @@
 	- Should I replace CNN decoder for text with GRU or LSTM? What about for the text encoder? 
 
 ## Todos:
-	[] Changes to the build_mscoco_data.py script as marked by the "\#TODO:" prefix
-	[] Model finalization
-	[] Implementation
+	[] Identify evaluation metric for which baselines are already available.
+	[] Implement above evaluation metric.
+	[] Use Google pre-trained Word2Vec model for word embeddings instead of learning from scratch.
+	[] Same as above for image as well - use VGG16BN instead of randomly initialized weights.
+
 
 ## Commands:
 ```bash

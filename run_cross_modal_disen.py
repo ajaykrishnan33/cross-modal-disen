@@ -29,7 +29,7 @@ def load_examples():
         raise Exception("input_dir does not exist")
 
     if config.mode == "train":
-        train_dataset = MSCOCODataset("train")
+        train_dataset = MSCOCODataset("val")
         ids, inputsI, inputsT = train_dataset.next_batch()
         count = train_dataset.total_size
         steps_per_epoch = int(math.ceil(train_dataset.total_size/config.batch_size))
