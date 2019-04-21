@@ -3,6 +3,8 @@ import random
 
 MAX_CHOICES = 20
 
+size = 0.1
+
 f = open("../mscoco/annotations/captions_val2014.json", "rb")
 data = json.loads(f.read())
 f.close()
@@ -94,6 +96,9 @@ for caption in captions:
     temp["answer_id"] = temp["choice_list"].index(answer)
 
     final_data["captions"].append(temp)
+
+final_data["images"] = final_data["images"][:int(len(final_data["images"])*size)]
+final_data["captions"] = final_data["captions"][:int(len(final_data["captions"])*size)]
 
 f = open("../mscoco/annotations/cross_modal_retrieval.json", "w")
 json.dump(final_data, f, indent=4)
