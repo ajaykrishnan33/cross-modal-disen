@@ -114,8 +114,8 @@ def main():
                 inputs.append(data_item["processed_input"])
                 choices.extend(data_item["processed_choice_list"])
 
-            inputs = np.vstack((*inputs,))
-            choices = np.vstack((*choices,))
+            inputs = np.stack((*inputs,))
+            choices = np.stack((*choices,))
 
             if config.which_direction == "AtoB":
                 input_results = sess.run({
