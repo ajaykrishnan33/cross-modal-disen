@@ -169,7 +169,7 @@ class TestDataset:
 
         return np.array(x)
 
-    def next_batch():
+    def next_batch(self):
         if self._inputs == "image":
             temp = self._curr_index + self._batch_size
             temp = max(temp, len(self._images))
