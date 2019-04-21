@@ -46,8 +46,8 @@ for img_ann in data["annotations"]:
     img_to_ann[img_ann["image_id"]].add(img_ann["caption"])
     ann_to_img[img_ann["caption"]] = img_ann["image_id"]
 
-captions = ann_to_img.keys()
-image_ids = img_to_ann.keys()
+captions = list(ann_to_img.keys())
+image_ids = list(img_to_ann.keys())
 
 final_data = {"images":[], "captions":[]}
 
