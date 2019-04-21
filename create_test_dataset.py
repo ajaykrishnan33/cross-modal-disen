@@ -55,7 +55,7 @@ for img_id in img_to_ann:
     temp = {}
     temp["image_id"] = img_id
     temp["choice_list"] = set([])
-    answer = random.choice(img_to_ann[img_id])
+    answer = random.choice(list(img_to_ann[img_id]))
     temp["choice_list"].add(answer)
 
     while len(temp["choice_list"]) < MAX_CHOICES:
