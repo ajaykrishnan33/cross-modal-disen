@@ -4,6 +4,9 @@ import config
 import os
 import json
 
+import numpy as np
+import scipy
+import scipy.ndimage
 import nltk.tokenize
 
 class Vocabulary:
@@ -139,18 +142,16 @@ class TestDataset:
             raise("Error")
 
     def _process_image(self, filepath):
-        f = open(filepath,"rb")
-        encoded_image = f.read()
-        f.close()
-        img = tf.image.decode_jpeg(encoded_image, channels=3)
-        img = tf.image.convert_image_dtype(img, dtype=tf.float32)
-        img = tf.image.resize_images(
-            img, size=[config.image_size, config.image_size], method=tf.image.ResizeMethod.BILINEAR
+        # f = open(filepath,"rb")
+        img = scipy.ndimage.imread(filepath)
+        img = img.astype(np.float32)/255.0
+        img = scipy.misc.imresize(
+            img, (config.image_size, config.image_size)
         )
 
         # range: [0,1] ==> [-1,+1]
-        img = tf.subtract(img, 0.5)
-        img = tf.multiply(img, 2.0)
+        img = np.subtract(img, 0.5)
+        img = np.multiply(img, 2.0)
 
         return img
 
@@ -193,6 +194,14 @@ class TestDataset:
                 for img_id in data_item["choice_list"]:
                     filepath = os.path.join(self._input_dir, self._id_to_file[str(img_id)])
                     data_item["processed_choice_list"].append(self._process_image(filepath))
+
+        sess = tf.Session()
+
+        for data_item in batch:
+            data_item["processed_input"], data_item["processed_choice_list"] = sess.run(
+                data_item["processed_input"],
+                data_item["processed_choice_list"]
+            )
 
         return batch
 
