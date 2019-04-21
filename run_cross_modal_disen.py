@@ -15,14 +15,12 @@ import os
 
 import config
 
-from data_ops import MSCOCODataset, Vocabulary
+from data_ops import MSCOCODataset, vocabulary
 from tqdm import tqdm
 
 CROP_SIZE = 256
 
 Examples = collections.namedtuple("Examples", "ids, inputsI, inputsT, ids_val, inputsI_val, inputsT_val, count, steps_per_epoch")
-
-vocabulary = Vocabulary()
 
 def load_examples():
     if config.input_dir is None or not os.path.exists(config.input_dir):
