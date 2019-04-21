@@ -41,86 +41,6 @@ def load_dataset():
         inputsT = inputsT
     ), test_dataset
 
-def save_results(fetches, step=None):
-    results_dir = os.path.join(config.output_dir, "results")
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
-
-    filesets = []
-    for i, sample_id in enumerate(fetches["ids"]):
-        # name, _ = os.path.splitext(os.path.basename(in_path.decode("utf8")))
-        name = str(sample_id.decode('utf-8'))
-        fileset = {"name": name, "step": step}
-        img_kinds = ["inputsI", "auto_outputsI", "outputsT2I", "outputsT2Ip"]
-        txt_kinds = ["outputsI2T", "outputsI2Tp", "inputsT", "auto_outputsT"]
-
-        for kind in img_kinds:
-            filename = name + "-" + kind + ".png"
-            if step is not None:
-                filename = "%08d-%s" % (step, filename)
-            fileset[kind] = filename
-            out_path = os.path.join(results_dir, filename)
-            contents = fetches[kind][i]
-            with open(out_path, "wb") as f:
-                f.write(contents)
-
-        for kind in txt_kinds:
-            filename = name + "-" + kind + ".txt"
-            if step is not None:
-                filename = "%08d-%s" % (step, filename)
-            fileset[kind] = filename
-            out_path = os.path.join(results_dir, filename)
-            contents = fetches[kind][i]
-
-            string = " ".join(contents)
-
-            with open(out_path, "wb") as f:
-                f.write(string)
-
-        filesets.append(fileset)
-    return filesets
-
-
-
-def append_index(filesets, step=False):
-    index_path = os.path.join(config.output_dir, "index.html")
-    if os.path.exists(index_path):
-        index = open(index_path, "a")
-    else:
-        index = open(index_path, "w")
-        index.write("<html><body><table><tr>")
-        if step:
-            index.write("<th>step</th>")
-        index.write("<th>name</th><th>inputsI</th><th>out(1)</th><th>out(2)</th><th>auto</th><th>inputsT</th><th>out(1)</th><th>out(2)</th><th>auto</th></tr>")
-
-    for fileset in filesets:
-        index.write("<tr>")
-
-        if step:
-            index.write("<td>%d</td>" % fileset["step"])
-        index.write("<td>%s</td>" % fileset["name"])
-        all_kinds = {
-            "inputsI":"img", 
-            "outputsI2T":"txt", 
-            "outputsI2Tp":"txt",
-            "auto_outputsI":"img",
-            "inputsT":"txt",
-            "outputsT2I":"img", 
-            "outputsT2Ip":"img",
-            "auto_outputsT":"txt"
-        }
-
-        for kind in all_kinds:
-            if all_kinds[kind]=="img":
-                index.write("<td><img src='results/%s'></td>" % fileset[kind])
-            else:
-                with open("results/"+fileset[kind], "r") as f:
-                    caption = f.read()
-                    index.write("<td>{}</td>".format(caption))
-
-        index.write("</tr>")
-    return index_path
-
 
 def main():
     if config.seed is None:
@@ -194,8 +114,10 @@ def main():
                 inputs.append(data_item["processed_input"])
                 choices.extend(data_item["processed_choice_list"])
 
-            inputs = np.vstack((*inputs,))
-            choices = np.vstack((*choices,))
+            inputs = tf.stack(inputs)
+            choices = tf.stack(choices)
+
+            inputs, choices = sess.run(inputs, choices)
 
             if config.which_direction == "AtoB":
                 input_results = sess.run({

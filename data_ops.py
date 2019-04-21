@@ -194,14 +194,6 @@ class TestDataset:
                     filepath = os.path.join(self._input_dir, self._id_to_file[str(img_id)])
                     data_item["processed_choice_list"].append(self._process_image(filepath))
 
-        sess = tf.Session()
-
-        for data_item in batch:
-            data_item["processed_input"], data_item["processed_choice_list"] = sess.run(
-                data_item["processed_input"],
-                data_item["processed_choice_list"]
-            )
-
         return batch
 
     def max_steps(self):
