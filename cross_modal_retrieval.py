@@ -34,7 +34,7 @@ def load_dataset():
     )
 
     inputsI = tf.placeholder(dtype=tf.float32, shape=(None, config.image_size, config.image_size, 3))
-    inputsT = tf.placeholder(dtype=tf.uint8, shape=(None, config.max_length))
+    inputsT = tf.placeholder(dtype=tf.int32, shape=(None, config.max_length))
 
     return Examples(
         inputsI = inputsI,
