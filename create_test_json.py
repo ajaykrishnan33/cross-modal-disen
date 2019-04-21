@@ -43,7 +43,10 @@ f.close()
 
 final_data = {"images":[], "captions":[]}
 
-final_data["metadata"] = data["images"]
+final_data["metadata"] = {}
+
+for img in data["images"]:
+    final_data["metadata"][img["id"]] = img["file_name"]
 
 img_to_ann = {}
 ann_to_img = {}
