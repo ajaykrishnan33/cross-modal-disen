@@ -54,6 +54,9 @@ class MSCOCODataset:
         img = tf.subtract(img, 0.5)
         img = tf.multiply(img, 2.0)
 
+        if len(img.shape)==2:
+            img = np.stack((img,)*3, axis=-1)
+
         return img
 
     def _extract_fn(self, tfrecord):
@@ -174,7 +177,7 @@ class TestDataset:
     def next_batch(self):
         if self._inputs == "image":
             temp = self._curr_index + self._batch_size
-            temp = max(temp, len(self._images))
+            temp = min(temp, len(self._images))
             batch = self._images[self._curr_index:temp]
             self._curr_index = temp
             for data_item in batch:
@@ -185,7 +188,7 @@ class TestDataset:
                     data_item["processed_choice_list"].append(self._process_caption(ch))
         else:
             temp = self._curr_index + self._batch_size
-            temp = max(temp, len(self._captions))
+            temp = min(temp, len(self._captions))
             batch = self._captions[self._curr_index:temp]
             self._curr_index = temp
             for data_item in batch:
