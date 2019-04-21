@@ -171,7 +171,7 @@ class TestDataset:
 
     def next_batch():
         if self._inputs == "image":
-            temp = self._curr_index + self.batch_size
+            temp = self._curr_index + self._batch_size
             temp = max(temp, len(self._images))
             batch = self._images[self._curr_index:temp]
             self._curr_index = temp
@@ -182,7 +182,7 @@ class TestDataset:
                 for ch in data_item["choice_list"]:
                     data_item["processed_choice_list"].append(self._process_caption(ch))
         else:
-            temp = self._curr_index + self.batch_size
+            temp = self._curr_index + self._batch_size
             temp = max(temp, len(self._captions))
             batch = self._captions[self._curr_index:temp]
             self._curr_index = temp
@@ -211,9 +211,9 @@ class TestDataset:
             array = self._captions
 
         if len(array)%self._batch_size==0:
-            return len(array)//self.batch_size
+            return len(array)//self._batch_size
         else:
-            return (len(array)//self.batch_size) + 1
+            return (len(array)//self._batch_size) + 1
                 
 
 
