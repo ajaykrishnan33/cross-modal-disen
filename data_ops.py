@@ -22,6 +22,7 @@ class Vocabulary:
         config.vocab_size = len(temp) + 2 # one extra each for the padding character and the unknown character
         self._id_to_word = tf.constant(temp, dtype=tf.string)
         self._word_to_id = temp2
+        temp2["<UNK>"] = config.vocab_size-1
 
     def get_word(self, id):
         if id==0:
