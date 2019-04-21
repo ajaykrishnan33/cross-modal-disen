@@ -54,9 +54,6 @@ class MSCOCODataset:
         img = tf.subtract(img, 0.5)
         img = tf.multiply(img, 2.0)
 
-        if len(img.shape)==2:
-            img = np.stack((img,)*3, axis=-1)
-
         return img
 
     def _extract_fn(self, tfrecord):
@@ -156,6 +153,9 @@ class TestDataset:
         # range: [0,1] ==> [-1,+1]
         img = np.subtract(img, 0.5)
         img = np.multiply(img, 2.0)
+
+        if len(img.shape)==2:
+            img = np.stack((img,)*3, axis=-1)
 
         return img
 
