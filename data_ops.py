@@ -88,20 +88,23 @@ class MSCOCODataset:
             imgs_file = os.path.join(config.input_dir, "coco_dev_ims.npy")
             # metafile = os.path.join(config.input_dir, "coco_val.txt")
 
-        captions = self._read_captions(captions_file)
-        images = self._read_images(imgs_file)
+        self.images = self._read_images(imgs_file)
+        self.captions = self._read_captions(captions_file)
 
-        self.total_size = len(captions)
+        self.total_size = len(self.captions)
 
-        with tf.name_scope("load_images"):
-            dataset = tf.data.Dataset.from_tensor_slices((images, captions))
+        self.images_placeholder = tf.placeholder(self.images.dtype, self.images.shape)
+        self.captions_placeholder = tf.placeholder(self.captions.dtype, self.captions.shape)
+
+        with tf.name_scope("load_data"):
+            dataset = tf.data.Dataset.from_tensor_slices((self.images_placeholder, self.captions_placeholder))
             dataset = dataset.repeat()
             dataset = dataset.batch(config.batch_size)
 
-        self.dataset = dataset
+        self.iterator = dataset.make_initializable_iterator()
 
     def next_batch(self):
-        return self.dataset.make_one_shot_iterator().get_next()
+        return self.iterator.get_next()
 
 class TestDataset:
 

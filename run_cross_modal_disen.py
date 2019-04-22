@@ -18,7 +18,7 @@ import config
 from data_ops import MSCOCODataset, vocabulary
 from tqdm import tqdm
 
-Examples = collections.namedtuple("Examples", "inputsI, inputsT, count, steps_per_epoch")
+Examples = collections.namedtuple("Examples", "inputsI, inputsT, count, steps_per_epoch, dataset")
 
 def load_examples():
     if config.input_dir is None or not os.path.exists(config.input_dir):
@@ -36,6 +36,7 @@ def load_examples():
         inputsT=inputsT,
         count=count,
         steps_per_epoch=steps_per_epoch,
+        dataset=train_dataset
     )
 
 
@@ -89,6 +90,11 @@ def main():
         # training
         print("Starting training")
         start = time.time()
+
+        sess.run(examples.dataset.iterator.initializer, feed_dict={
+            examples.dataset.images_placeholder: examples.dataset.images,
+            examples.dataset.captions_placeholder: examples.dataset.captions
+        })
 
         for step in tqdm(range(max_steps)):
             def should(freq):
