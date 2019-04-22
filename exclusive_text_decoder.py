@@ -26,7 +26,7 @@ def create_exclusive_text_decoder(embedded_text, eR):
         fc1_bn = batchnorm(rectified, axis=1)
 
     with tf.variable_scope("decoder_gru"):
-        gru = tf.keras.layers.GRU(300, return_sequences=True)
+        gru = tf.keras.layers.GRU(300, return_sequences=True, unroll=True)
         outputs = gru(embedded_text, initial_state=fc1_bn)
 
     return outputs

@@ -15,7 +15,7 @@ import config
 def create_text_discriminator(embedded_text):
 
     with tf.variable_scope("text_discrim_gru"):
-        gru = tf.keras.layers.GRU(300, return_state=True)
+        gru = tf.keras.layers.GRU(300, return_state=True, unroll=True)
         _, encoded_text = gru(embedded_text)
 
     # layer_4: fully connected [batch, 300] => [batch, 1]

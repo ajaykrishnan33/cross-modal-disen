@@ -8,7 +8,7 @@ def create_text_encoder(embedded_text):
     # encoded_text: [batch, max_length, config.wrl]
 
     with tf.variable_scope("encoder_gru"):
-        gru = tf.keras.layers.GRU(300, return_state=True)
+        gru = tf.keras.layers.GRU(300, return_state=True, unroll=True)
         _, encoded_text = gru(embedded_text)
 
     # Shared part of the representation
