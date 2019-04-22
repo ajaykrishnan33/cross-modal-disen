@@ -12,7 +12,7 @@ import time
 import config
 from ops import *
 
-def create_exclusive_text_decoder(eR):
+def create_exclusive_text_decoder(embedded_text, eR):
 
     initial_input = eR
 
@@ -26,7 +26,7 @@ def create_exclusive_text_decoder(eR):
         fc1_bn = batchnorm(rectified, axis=1)
 
     with tf.variable_scope("decoder_gru"):
-        gru = tf.keras.layers.GRU(300, return_sequences=True, return_state=True)
-        outputs, _ = gru(fc1_bn)
+        gru = tf.keras.layers.GRU(300, return_sequences=True)
+        outputs = gru(embedded_text, initial_state=fc1_bn)
 
     return outputs

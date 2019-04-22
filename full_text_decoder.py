@@ -12,7 +12,7 @@ import time
 from ops import *
 import config
 
-def create_full_text_decoder(sR, eR, noise = True):
+def create_full_text_decoder(embedded_text, sR, eR, noise = True):
 
     batch_size = sR.shape[0]
 
@@ -33,7 +33,7 @@ def create_full_text_decoder(sR, eR, noise = True):
         fc1_bn = batchnorm(rectified, axis=1)
 
     with tf.variable_scope("decoder_gru"):
-        gru = tf.keras.layers.GRU(300, return_sequences=True, return_state=True)
-        outputs, _ = gru(fc1_bn)
+        gru = tf.keras.layers.GRU(300, return_sequences=True)
+        outputs = gru(embedded_text, initial_state=fc1_bn)
 
     return outputs
