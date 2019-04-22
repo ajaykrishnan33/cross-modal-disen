@@ -129,7 +129,7 @@ def create_model(inputsI, inputsT):
     ######### EXCLUSIVE REPRESENTATION
     # Create generators/discriminators for exclusive representation
     with tf.variable_scope("generator_exclusiveI2T_decoder"):
-        outputs_exclusiveI2T_embedded = create_exclusive_text_decoder(inputsT, eR_I2T)
+        outputs_exclusiveI2T_embedded = create_exclusive_text_decoder(inputsT_embedded, eR_I2T)
     
     with tf.variable_scope("text_deembedder", reuse=True):
         outputs_exclusiveI2T = create_text_deembedder(outputs_exclusiveI2T_embedded)
