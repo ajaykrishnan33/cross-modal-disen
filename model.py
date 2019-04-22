@@ -186,10 +186,10 @@ def create_model(inputsI, inputsT):
     with tf.name_scope("discriminatorT2I_loss"):
         discrimT2I_loss = tf.reduce_mean(predict_fakeT2I) - tf.reduce_mean(predict_realT2I)
         alpha = tf.random_uniform(shape=[tf.shape(outputsT2I)[0],1], minval=0., maxval=1.)
-        differences = tf.reshape(outputsT2I,[-1,config.img_output_dim])-tf.reshape(inputsI,[-1,config.img_output_dim])
-        interpolates = tf.reshape(inputsI,[-1,config.img_output_dim]) + (alpha*differences)
+        differences = tf.reshape(outputsT2I,[-1,4096])-tf.reshape(inputsI,[-1,4096])
+        interpolates = tf.reshape(inputsI,[-1,4096]) + (alpha*differences)
         with tf.variable_scope("discriminatorT2I", reuse=True):
-            gradients = tf.gradients(create_image_discriminator(tf.reshape(interpolates,[-1,config.image_size,config.image_size,3])),
+            gradients = tf.gradients(create_image_discriminator(interpolates),
                          [interpolates])[0]
         slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients),
                                        reduction_indices=[1]))
