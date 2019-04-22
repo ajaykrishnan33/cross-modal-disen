@@ -3,6 +3,7 @@ from glob import glob
 import config
 import os
 import json
+import pickle
 
 import numpy as np
 import scipy
@@ -43,81 +44,55 @@ vocabulary = Vocabulary()
 
 class MSCOCODataset:
 
-    def _process_image(self, encoded_image):
-        img = tf.image.decode_jpeg(encoded_image, channels=3)
-        img = tf.image.convert_image_dtype(img, dtype=tf.float32)
-        img = tf.image.resize_images(
-            img, size=[config.image_size, config.image_size], method=tf.image.ResizeMethod.BILINEAR
-        )
+    def _process_caption(self, caption):
+        x = []
+        
+        tokenized_caption = ["<S>"]
+        tokenized_caption.extend(nltk.tokenize.word_tokenize(caption.lower()))
+        tokenized_caption.append("</S>")
 
-        # range: [0,1] ==> [-1,+1]
-        img = tf.subtract(img, 0.5)
-        img = tf.multiply(img, 2.0)
+        for i in range(min(config.max_length, len(tokenized_caption))):
+            x.append(vocabulary.get_index(tokenized_caption[i]))
 
-        return img
+        if len(x) < config.max_length:
+            x.extend([0]*(config.max_length-len(x)))
 
-    def _extract_fn(self, tfrecord):
-        context, sequence = tf.io.parse_single_sequence_example(
-            tfrecord,
-            context_features={
-                "image/image_id": tf.FixedLenFeature([], dtype=tf.string),
-                "image/data": tf.FixedLenFeature([], dtype=tf.string)
-            },
-            sequence_features={
-                "image/caption_ids": tf.FixedLenSequenceFeature([], dtype=tf.int64)
-            }
-        )
+        return np.array(x)
 
-        sample_id = context["image/image_id"]
+    def _read_captions(self, captions_file):
+        x = open(captions_file, "rb")
+        data = x.read().strip()
+        captions = [y.strip() for y in data.split("\n")]
+        processed_captions = []
+        for c in captions:
+            processed_captions.append(self._process_caption(c))
 
-        encoded_image = context["image/data"]
-        processed_image = self._process_image(encoded_image)
-
-        caption = sequence["image/caption_ids"]
-
-        def true_fn():
-            return tf.pad(
-                caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]])
-            )
-
-        def false_fn():
-            return caption[:config.max_length]
-
-        padded_caption = tf.cond(
-            tf.shape(caption)[0] < config.max_length, true_fn=true_fn, false_fn=false_fn
-        )
-        # ### NEEDS FIXING
-        # if tf.shape(caption)[0] < config.max_length:
-        #     padded_caption = tf.pad(
-        #         caption, tf.convert_to_tensor([[0, config.max_length - tf.shape(caption)[0]]])
-        #     )
-        # else:
-        #     padded_caption = caption[:config.max_length]
-
-        return sample_id, processed_image, padded_caption
-
+        return np.stack((*processed_captions,))
 
     def __init__(self, mode):
         if not (mode=="train" or mode=="test" or mode=="val"):
             raise Exception("Incorrect mode: {}".format(mode))
 
         if mode=="train":
-            glob_string = "train-*" 
-            self.total_size = 586368
+            captions_file = os.path.join(config.input_dir, "coco_train_caps.txt")
+            imgs_file = os.path.join(config.input_dir, "coco_train_ims.npy")
+            # metafile = os.path.join(config.input_dir, "coco_train.txt")
         elif mode=="test":
-            glob_string = "test-*"
-            self.total_size = 20267
+            captions_file = os.path.join(config.input_dir, "coco_test_caps.txt")
+            imgs_file = os.path.join(config.input_dir, "coco_test_ims.npy")
+            # metafile = os.path.join(config.input_dir, "coco_test.txt")
         else:
-            glob_string = "val-*"
-            self.total_size = 10132
+            captions_file = os.path.join(config.input_dir, "coco_dev_caps.txt")
+            imgs_file = os.path.join(config.input_dir, "coco_dev_ims.npy")
+            # metafile = os.path.join(config.input_dir, "coco_val.txt")
 
+        captions = self._read_captions(captions_file)
+        images = self._read_images(imgs_file)
 
-        record_filenames = glob(os.path.join(config.input_dir, glob_string))
+        self.total_size = len(captions)
 
         with tf.name_scope("load_images"):
-            dataset = tf.data.TFRecordDataset(record_filenames)
-            
-            dataset = dataset.map(self._extract_fn)
+            dataset = tf.data.Dataset.from_tensor_slices((images, captions))
             dataset = dataset.repeat()
             dataset = dataset.batch(config.batch_size)
 
@@ -128,9 +103,8 @@ class MSCOCODataset:
 
 class TestDataset:
 
-    def __init__(self, json_file, inputs, input_dir, batch_size):
-        data = json.load(open(json_file, "rb"))
-        self._id_to_file = data["metadata"]
+    def __init__(self, pkl_file, inputs, input_dir, batch_size):
+        data = pickle.load(open(pkl_file, "rb"))
         self._inputs = inputs
         self._batch_size = batch_size
         self._curr_index = 0
@@ -141,23 +115,6 @@ class TestDataset:
             self._captions = data["captions"]
         else:
             raise("Error")
-
-    def _process_image(self, filepath):
-        # f = open(filepath,"rb")
-        img = scipy.ndimage.imread(filepath)
-        img = img.astype(np.float32)/255.0
-        img = scipy.misc.imresize(
-            img, (config.image_size, config.image_size)
-        )
-
-        # range: [0,1] ==> [-1,+1]
-        img = np.subtract(img, 0.5)
-        img = np.multiply(img, 2.0)
-
-        if len(img.shape)==2:
-            img = np.stack((img,)*3, axis=-1)
-
-        return img
 
     def _process_caption(self, caption):
         x = []
@@ -181,8 +138,7 @@ class TestDataset:
             batch = self._images[self._curr_index:temp]
             self._curr_index = temp
             for data_item in batch:
-                filepath = os.path.join(self._input_dir, self._id_to_file[str(data_item["image_id"])])
-                data_item["processed_input"] = self._process_image(filepath)
+                data_item["processed_input"] = data_item["image"]
                 data_item["processed_choice_list"] = []
                 for ch in data_item["choice_list"]:
                     data_item["processed_choice_list"].append(self._process_caption(ch))
@@ -194,10 +150,7 @@ class TestDataset:
             for data_item in batch:
                 caption = data_item["caption"]
                 data_item["processed_input"] = self._process_caption(caption)
-                data_item["processed_choice_list"] = []
-                for img_id in data_item["choice_list"]:
-                    filepath = os.path.join(self._input_dir, self._id_to_file[str(img_id)])
-                    data_item["processed_choice_list"].append(self._process_image(filepath))
+                data_item["processed_choice_list"] = data_item["choice_list"]
 
         return batch
 
