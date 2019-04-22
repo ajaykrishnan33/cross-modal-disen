@@ -96,7 +96,7 @@ for caption in captions:
     temp["choice_list"].add(answer)
 
     while len(temp["choice_list"]) < MAX_CHOICES:
-        choice = random.choice(image_ids)
+        choice = random.choice(metadata)
         temp["choice_list"].add(choice)
 
     temp["choice_list"] = list(temp["choice_list"])
