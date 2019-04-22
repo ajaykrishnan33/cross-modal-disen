@@ -60,13 +60,13 @@ def create_model(inputsI, inputsT):
     # One copy of the decoder for the noise input, the second copy for the correct the cross-domain autoencoder
     with tf.name_scope("generatorI2T_decoder_noise"):
         with tf.variable_scope("generatorI2T_decoder"):
-            outputsI2T_embedded = create_full_text_decoder(inputsT, sR_I2T, z)
+            outputsI2T_embedded = create_full_text_decoder(inputsT_embedded, sR_I2T, z)
         
         with tf.variable_scope("text_deembedder"):
             outputsI2T = create_text_deembedder(outputsI2T_embedded)
 
         with tf.variable_scope("generatorI2T_decoder", reuse=True):
-            outputsI2Tp_embedded = create_full_text_decoder(inputsT, sR_I2T, z2)
+            outputsI2Tp_embedded = create_full_text_decoder(inputsT_embedded, sR_I2T, z2)
 
         with tf.variable_scope("text_deembedder", reuse=True):
             outputsI2Tp = create_text_deembedder(outputsI2Tp_embedded)
@@ -98,7 +98,7 @@ def create_model(inputsI, inputsT):
     with tf.name_scope("autoencoderT"):
         # Use here decoder I2T but with input from T2I encoder
         with tf.variable_scope("generatorI2T_decoder", reuse=True):
-            auto_outputT_embedded = create_full_text_decoder(inputsT, sR_I2T, eR_T2I)
+            auto_outputT_embedded = create_full_text_decoder(inputsT_embedded, sR_I2T, eR_T2I)
 
         with tf.variable_scope("text_deembedder", reuse=True):
             auto_outputT = create_text_deembedder(auto_outputT_embedded)
