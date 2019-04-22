@@ -20,6 +20,6 @@ def create_text_discriminator(embedded_text):
 
     # layer_4: fully connected [batch, 300] => [batch, 1]
     with tf.variable_scope("layer_fc1"):
-        output = discrim_fc(rinput, out_channels=1)
+        output = discrim_fc(encoded_text, out_channels=1)
 
     return tf.reshape(output,[-1])
