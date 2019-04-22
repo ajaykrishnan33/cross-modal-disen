@@ -68,6 +68,9 @@ class MSCOCODataset:
 
         return np.stack((*processed_captions,))
 
+    def _read_images(self, imgs_file):
+        return np.load(imgs_file)
+
     def __init__(self, mode):
         if not (mode=="train" or mode=="test" or mode=="val"):
             raise Exception("Incorrect mode: {}".format(mode))
