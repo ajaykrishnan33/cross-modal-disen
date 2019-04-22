@@ -12,6 +12,8 @@ import time
 from ops import *
 import config
 
+from data_ops import vocabulary
+
 def create_full_text_decoder(embedded_text, sR, eR, noise = True):
 
     batch_size = sR.shape[0]
@@ -36,4 +38,6 @@ def create_full_text_decoder(embedded_text, sR, eR, noise = True):
         gru = tf.keras.layers.GRU(300, return_sequences=True, unroll=True)
         outputs = gru(embedded_text, initial_state=fc1_bn)
 
-    return outputs
+    result = tf.concat((embedded_text[:,0:1,:], outputs[:,:-1,:]), axis=1)
+
+    return result

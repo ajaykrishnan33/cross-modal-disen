@@ -12,6 +12,8 @@ import time
 import config
 from ops import *
 
+from data_ops import vocabulary
+
 def create_exclusive_text_decoder(embedded_text, eR):
 
     initial_input = eR
@@ -29,4 +31,6 @@ def create_exclusive_text_decoder(embedded_text, eR):
         gru = tf.keras.layers.GRU(300, return_sequences=True, unroll=True)
         outputs = gru(embedded_text, initial_state=fc1_bn)
 
-    return outputs
+    result = tf.concat((embedded_text[:,0:1,:], outputs[:,:-1,:]), axis=1)
+
+    return result
