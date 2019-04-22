@@ -60,9 +60,8 @@ class MSCOCODataset:
         return np.array(x)
 
     def _read_captions(self, captions_file):
-        x = open(captions_file, "rb")
-        data = x.read().strip()
-        captions = [y.strip() for y in data.split("\n")]
+        x = open(captions_file, "r")
+        captions = [y.strip() for y in x]
         processed_captions = []
         for c in captions:
             processed_captions.append(self._process_caption(c))

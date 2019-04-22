@@ -6,14 +6,14 @@ MAX_CHOICES = 20
 
 size = 0.1
 
-captions_file = open("../temp/coco_dev_caps.txt", "rb")
-captions = [x.strip() for x in captions_file.read().strip().split("\n")]
+captions_file = open("../temp/coco_dev_caps.txt", "r")
+captions = [x.strip() for x in captions_file]
 captions_file.close()
 
 images = np.load("../temp/coco_dev_ims.npy")
 
-metadata_file = open("../temp/coco_val.txt", "rb")
-metadata = [x.strip() for x in metadata_file.read().strip().split("\n")]
+metadata_file = open("../temp/coco_val.txt", "r")
+metadata = [x.strip() for x in metadata_file]
 metadata_file.close()
 
 """
