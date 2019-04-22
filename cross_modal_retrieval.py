@@ -32,7 +32,7 @@ def load_dataset():
         batch_size=config.batch_size
     )
 
-    inputsI = tf.placeholder(dtype=tf.float32, shape=(None, config.image_size, config.image_size, 3))
+    inputsI = tf.placeholder(dtype=tf.float32, shape=(None, 4096))
     inputsT = tf.placeholder(dtype=tf.int32, shape=(None, config.max_length))
 
     return Examples(
