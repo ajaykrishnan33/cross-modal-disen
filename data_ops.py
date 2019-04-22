@@ -103,12 +103,12 @@ class MSCOCODataset:
 
 class TestDataset:
 
-    def __init__(self, pkl_file, inputs, input_dir, batch_size):
+    def __init__(self, pkl_file, inputs, batch_size):
         data = pickle.load(open(pkl_file, "rb"))
         self._inputs = inputs
         self._batch_size = batch_size
         self._curr_index = 0
-        self._input_dir = input_dir
+
         if inputs=="image":
             self._images = data["images"]
         elif inputs=="text":

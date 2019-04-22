@@ -27,9 +27,8 @@ def load_dataset():
         raise Exception("input_dir does not exist")
 
     test_dataset = TestDataset(
-        json_file="../mscoco/annotations/cross_modal_retrieval.json",
+        pkl_file="../temp/cross_modal_retrieval.pkl",
         inputs="image",
-        input_dir="../mscoco/val2014/",
         batch_size=config.batch_size
     )
 
