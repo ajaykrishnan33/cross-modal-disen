@@ -14,12 +14,12 @@ import config
 
 def create_text_discriminator(embedded_text):
 
-    with tf.variable_scope("layer_gru"):
+    with tf.variable_scope("text_discrim_gru"):
         gru = tf.keras.layers.GRU(300, return_state=True)
         _, encoded_text = gru(embedded_text)
 
     # layer_4: fully connected [batch, 300] => [batch, 1]
-    with tf.variable_scope("layer_fc1"):
+    with tf.variable_scope("text_discrim_fc1"):
         output = discrim_fc(encoded_text, out_channels=1)
 
     return tf.reshape(output,[-1])
