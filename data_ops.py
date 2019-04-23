@@ -58,8 +58,8 @@ class MSCOCODataset:
             mask.append(1.0)
 
         if len(x) < config.max_length:
-            x.extend([0]*(config.max_length-len(x)))
             mask.extend([0.0]*(config.max_length-len(x)))
+            x.extend([0]*(config.max_length-len(x)))
 
         return np.array(x), np.array(mask)
 
@@ -142,8 +142,8 @@ class TestDataset:
             mask.append(1.0)
 
         if len(x) < config.max_length:
-            x.extend([0]*(config.max_length-len(x)))
             mask.extend([0.0]*(config.max_length-len(x)))
+            x.extend([0]*(config.max_length-len(x)))
 
         return np.array(x), np.array(mask)
 
