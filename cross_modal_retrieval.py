@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 CROP_SIZE = 256
 
-Examples = collections.namedtuple("Examples", "inputsI, inputsT")
+Examples = collections.namedtuple("Examples", "inputsI, inputsT, masks")
 
 def load_dataset():
     if config.input_dir is None or not os.path.exists(config.input_dir):
@@ -36,10 +36,12 @@ def load_dataset():
 
     inputsI = tf.placeholder(dtype=tf.float32, shape=(None, 4096))
     inputsT = tf.placeholder(dtype=tf.int32, shape=(None, config.max_length))
+    masks = tf.placeholder(dtype=tf.float32, shape=(None, config.max_length))
 
     return Examples(
         inputsI = inputsI,
-        inputsT = inputsT
+        inputsT = inputsT,
+        masks = masks
     ), test_dataset
 
 
@@ -74,7 +76,7 @@ def main():
     examples, dataset = load_dataset()
 
     # inputs and targets are [batch_size, height, width, channels]
-    model = create_model(examples.inputsI, examples.inputsT)
+    model = create_model(examples.inputsI, examples.inputsT, examples.masks)
     
     sR_I2T = model.sR_I2T
     sR_T2I = model.sR_T2I
@@ -108,15 +110,18 @@ def main():
 
             inputs = []
             choices = []
+            masks = []
 
             total_qs += len(batch)
 
             for data_item in batch:
                 inputs.append(data_item["processed_input"])
                 choices.extend(data_item["processed_choice_list"])
+                masks.extend(data_item["masks"])
 
             inputs = np.stack((*inputs,))
             choices = np.stack((*choices,))
+            masks = np.stack((*masks,))
 
             if config.which_direction == "AtoB":
                 input_results = sess.run({
@@ -130,7 +135,8 @@ def main():
                     "shared": sR_T2I,
                     "exclusive": eR_T2I
                 }, feed_dict={
-                    examples.inputsT: choices
+                    examples.inputsT: choices,
+                    examples.masks: masks
                 })
             else:
                 input_results = sess.run({

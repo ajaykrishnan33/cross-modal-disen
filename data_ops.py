@@ -51,22 +51,29 @@ class MSCOCODataset:
         tokenized_caption.extend(nltk.tokenize.word_tokenize(caption.lower()))
         tokenized_caption.append("</S>")
 
+        mask = []
+
         for i in range(min(config.max_length, len(tokenized_caption))):
             x.append(vocabulary.get_index(tokenized_caption[i]))
+            mask.append[1.0]
 
         if len(x) < config.max_length:
             x.extend([0]*(config.max_length-len(x)))
+            mask.extend([0.0]*(config.max_length-len(x)))
 
-        return np.array(x)
+        return np.array(x), np.array(mask)
 
     def _read_captions(self, captions_file):
         x = open(captions_file, "r")
         captions = [y.strip() for y in x]
         processed_captions = []
+        masks = []
         for c in captions:
-            processed_captions.append(self._process_caption(c))
+            pc, mask = self._process_caption(c)
+            processed_captions.append(pc)
+            masks.append(mask)
 
-        return np.stack((*processed_captions,))
+        return np.stack((*processed_captions,)), np.stack((*masks,))
 
     def _read_images(self, imgs_file):
         return np.load(imgs_file)
@@ -89,15 +96,16 @@ class MSCOCODataset:
             # metafile = os.path.join(config.input_dir, "coco_val.txt")
 
         self.images = self._read_images(imgs_file)
-        self.captions = self._read_captions(captions_file)
+        self.captions, self.masks = self._read_captions(captions_file)
 
         self.total_size = len(self.captions)
 
         self.images_placeholder = tf.placeholder(self.images.dtype, self.images.shape)
         self.captions_placeholder = tf.placeholder(self.captions.dtype, self.captions.shape)
+        self.masks_placeholder = tf.placeholder(self.masks.dtype, self.masks.shape)
 
         with tf.name_scope("load_data"):
-            dataset = tf.data.Dataset.from_tensor_slices((self.images_placeholder, self.captions_placeholder))
+            dataset = tf.data.Dataset.from_tensor_slices((self.images_placeholder, self.captions_placeholder, self.masks_placeholder))
             dataset = dataset.repeat()
             dataset = dataset.batch(config.batch_size)
 
@@ -128,13 +136,16 @@ class TestDataset:
         tokenized_caption.extend(nltk.tokenize.word_tokenize(caption.lower()))
         tokenized_caption.append("</S>")
 
+        mask = []
         for i in range(min(config.max_length, len(tokenized_caption))):
             x.append(vocabulary.get_index(tokenized_caption[i]))
+            mask.append(1.0)
 
         if len(x) < config.max_length:
             x.extend([0]*(config.max_length-len(x)))
+            mask.extend([0.0]*(config.max_length-len(x)))
 
-        return np.array(x)
+        return np.array(x), np.array(mask)
 
     def next_batch(self):
         if self._inputs == "image":
@@ -145,8 +156,12 @@ class TestDataset:
             for data_item in batch:
                 data_item["processed_input"] = data_item["image"]
                 data_item["processed_choice_list"] = []
+                data_item["masks"] = []
                 for ch in data_item["choice_list"]:
-                    data_item["processed_choice_list"].append(self._process_caption(ch))
+                    pc, mask = self._process_caption(ch)
+                    data_item["processed_choice_list"].append(pc)
+                    data_item["masks"].append(mask)
+
         else:
             temp = self._curr_index + self._batch_size
             temp = min(temp, len(self._captions))

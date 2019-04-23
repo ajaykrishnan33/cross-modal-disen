@@ -18,22 +18,22 @@ import config
 from data_ops import MSCOCODataset, vocabulary
 from tqdm import tqdm
 
-Examples = collections.namedtuple("Examples", "inputsI, inputsT, count, steps_per_epoch, dataset")
+Examples = collections.namedtuple("Examples", "inputsI, inputsT, masks, count, steps_per_epoch, dataset")
 
 def load_examples():
     if config.input_dir is None or not os.path.exists(config.input_dir):
         raise Exception("input_dir does not exist")
 
-    if config.mode == "train":
-        train_dataset = MSCOCODataset("train")
-        inputsI, inputsT = train_dataset.next_batch()
-        count = train_dataset.total_size
-        steps_per_epoch = int(math.ceil(train_dataset.total_size/config.batch_size))
-        # inputsI_val, inputsT_val = MSCOCODataset("val").next_batch()
+    train_dataset = MSCOCODataset("train")
+    inputsI, inputsT, masks = train_dataset.next_batch()
+    count = train_dataset.total_size
+    steps_per_epoch = int(math.ceil(train_dataset.total_size/config.batch_size))
+    # inputsI_val, inputsT_val = MSCOCODataset("val").next_batch()
 
     return Examples(
         inputsI=inputsI,
         inputsT=inputsT,
+        masks=masks,
         count=count,
         steps_per_epoch=steps_per_epoch,
         dataset=train_dataset
@@ -60,7 +60,7 @@ def main():
     examples = load_examples()
 
     # inputs and targets are [batch_size, height, width, channels]
-    model = create_model(examples.inputsI, examples.inputsT)
+    model = create_model(examples.inputsI, examples.inputsT, examples.masks)
 
     with tf.name_scope("parameter_count"):
         parameter_count = tf.reduce_sum([tf.reduce_prod(tf.shape(v)) for v in tf.trainable_variables()])
@@ -93,7 +93,8 @@ def main():
 
         sess.run(examples.dataset.iterator.initializer, feed_dict={
             examples.dataset.images_placeholder: examples.dataset.images,
-            examples.dataset.captions_placeholder: examples.dataset.captions
+            examples.dataset.captions_placeholder: examples.dataset.captions,
+            examples.dataset.masks_placeholder: examples.dataset.masks
         })
 
         for step in tqdm(range(max_steps)):

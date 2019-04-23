@@ -41,7 +41,7 @@ Model = collections.namedtuple("Model", "outputsI2T, outputsT2I,\
                                code_eR_I2T_recon_loss,code_eR_T2I_recon_loss,\
                                train")
 
-def create_model(inputsI, inputsT):    
+def create_model(inputsI, inputsT, masks):    
 
     ######### IMAGE_TRANSLATORS
     with tf.variable_scope("generatorI2T_encoder"):
@@ -238,19 +238,24 @@ def create_model(inputsI, inputsT):
     #     autoencoderT_loss = config.l1_weight*tf.reduce_mean(tf.abs(auto_outputT-inputsT))
     with tf.name_scope("autoencoderT_loss"):
         autoencoderT_loss = config.l1_weight * tf.contrib.seq2seq.sequence_loss(
-            auto_outputT, inputsT, tf.ones_like(inputsT, dtype=tf.float32)
+            auto_outputT, inputsT, masks
         )
 
     with tf.name_scope("feat_recon_loss"):
-        feat_recon_loss = config.l1_weight*tf.reduce_mean(tf.abs(sR_I2T-sR_T2I))
+        feat_recon_loss = config.l1_weight*tf.reduce_mean(tf.losses.cosine_distance(sR_I2T, sR_T2I, axis=1, reduction=None))
 
     with tf.name_scope("code_recon_loss"):
-        code_sR_I2T_recon_loss = tf.reduce_mean(tf.abs(sR_I2T_recon-sR_I2T))
-        code_sR_T2I_recon_loss = tf.reduce_mean(tf.abs(sR_T2I_recon-sR_T2I))
-        code_eR_I2T_recon_loss = tf.reduce_mean(tf.abs(eR_I2T_recon-z))
-        code_eR_T2I_recon_loss = tf.reduce_mean(tf.abs(eR_T2I_recon-z))
-        code_recon_loss = config.l1_weight*(code_sR_I2T_recon_loss + code_sR_T2I_recon_loss
-                                    +code_eR_I2T_recon_loss + code_eR_T2I_recon_loss)
+        # code_sR_I2T_recon_loss = tf.reduce_mean(tf.abs(sR_I2T_recon-sR_I2T))
+        code_sR_I2T_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(sR_I2T_recon, sR_I2T, axis=1, reduction=None))
+        # code_sR_T2I_recon_loss = tf.reduce_mean(tf.abs(sR_T2I_recon-sR_T2I))
+        code_sR_T2I_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(sR_T2I_recon, sR_T2I, axis=1, reduction=None))
+        # code_eR_I2T_recon_loss = tf.reduce_mean(tf.abs(eR_I2T_recon-z))
+        code_eR_I2T_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(eR_I2T_recon, z, axis=1, reduction=None))
+        # code_eR_T2I_recon_loss = tf.reduce_mean(tf.abs(eR_T2I_recon-z))
+        code_eR_T2I_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(eR_T2I_recon, z, axis=1, reduction=None))
+        # code_recon_loss = config.l1_weight*(code_sR_I2T_recon_loss + code_sR_T2I_recon_loss
+        #                             +code_eR_I2T_recon_loss + code_eR_T2I_recon_loss)
+        code_recon_loss = config.l1_weight*(code_sR_I2T_recon_loss + code_sR_T2I_recon_loss)
 
     ######### OPTIMIZERS
 
