@@ -61,7 +61,7 @@ class MSCOCODataset:
             mask.extend([0.0]*(config.max_length-len(x)))
             x.extend([0]*(config.max_length-len(x)))
 
-        return np.array(x), np.array(mask)
+        return np.array(x), np.array(mask, dtype=np.float32)
 
     def _read_captions(self, captions_file):
         x = open(captions_file, "r")
@@ -145,7 +145,7 @@ class TestDataset:
             mask.extend([0.0]*(config.max_length-len(x)))
             x.extend([0]*(config.max_length-len(x)))
 
-        return np.array(x), np.array(mask)
+        return np.array(x), np.array(mask, dtype=np.float32)
 
     def next_batch(self):
         if self._inputs == "image":
