@@ -27,7 +27,7 @@ def create_image_encoder(image):
         efc2_output = gen_fc(efc2_input, out_channels=100) #4096
         efc2_bn = batchnorm(efc2_output, axis=1)
 
-    sR = fc2_bn #fc2_bn
-    eR = efc2_bn #efc2_bn
+    sR = tf.math.l2_normalize(fc2_bn) #fc2_bn
+    eR = tf.math.l2_normalize(efc2_bn) #efc2_bn
 
     return sR, eR

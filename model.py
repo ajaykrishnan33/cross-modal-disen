@@ -245,14 +245,14 @@ def create_model(inputsI, inputsT, masks):
         feat_recon_loss = config.l1_weight*tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(sR_I2T), tf.math.l2_normalize(sR_T2I), axis=1, reduction=tf.losses.Reduction.NONE))
 
     with tf.name_scope("code_recon_loss"):
-        # code_sR_I2T_recon_loss = tf.reduce_mean(tf.abs(sR_I2T_recon-sR_I2T))
-        code_sR_I2T_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(sR_I2T_recon), tf.math.l2_normalize(sR_I2T), axis=1, reduction=tf.losses.Reduction.NONE))
-        # code_sR_T2I_recon_loss = tf.reduce_mean(tf.abs(sR_T2I_recon-sR_T2I))
-        code_sR_T2I_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(sR_T2I_recon), tf.math.l2_normalize(sR_T2I), axis=1, reduction=tf.losses.Reduction.NONE))
-        # code_eR_I2T_recon_loss = tf.reduce_mean(tf.abs(eR_I2T_recon-z))
-        code_eR_I2T_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(eR_I2T_recon), tf.math.l2_normalize(z), axis=1, reduction=tf.losses.Reduction.NONE))
-        # code_eR_T2I_recon_loss = tf.reduce_mean(tf.abs(eR_T2I_recon-z))
-        code_eR_T2I_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(eR_T2I_recon), tf.math.l2_normalize(z), axis=1, reduction=tf.losses.Reduction.NONE))
+        code_sR_I2T_recon_loss = tf.reduce_mean(tf.abs(sR_I2T_recon-sR_I2T))
+        # code_sR_I2T_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(sR_I2T_recon), tf.math.l2_normalize(sR_I2T), axis=1, reduction=tf.losses.Reduction.NONE))
+        code_sR_T2I_recon_loss = tf.reduce_mean(tf.abs(sR_T2I_recon-sR_T2I))
+        # code_sR_T2I_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(sR_T2I_recon), tf.math.l2_normalize(sR_T2I), axis=1, reduction=tf.losses.Reduction.NONE))
+        code_eR_I2T_recon_loss = tf.reduce_mean(tf.abs(eR_I2T_recon-z))
+        # code_eR_I2T_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(eR_I2T_recon), tf.math.l2_normalize(z), axis=1, reduction=tf.losses.Reduction.NONE))
+        code_eR_T2I_recon_loss = tf.reduce_mean(tf.abs(eR_T2I_recon-z))
+        # code_eR_T2I_recon_loss = tf.reduce_mean(tf.losses.cosine_distance(tf.math.l2_normalize(eR_T2I_recon), tf.math.l2_normalize(z), axis=1, reduction=tf.losses.Reduction.NONE))
         # code_recon_loss = config.l1_weight*(code_sR_I2T_recon_loss + code_sR_T2I_recon_loss
         #                             +code_eR_I2T_recon_loss + code_eR_T2I_recon_loss)
         code_recon_loss = config.l1_weight*(code_sR_I2T_recon_loss + code_sR_T2I_recon_loss)

@@ -24,7 +24,7 @@ def create_text_encoder(embedded_text):
         efc1_bn = batchnorm(efc1_output, axis=1)
 
 
-    sR = fc1_bn #fc2_bn
-    eR = efc1_bn #efc2_bn
+    sR = tf.math.l2_normalize(fc1_bn) #fc2_bn
+    eR = tf.math.l2_normalize(efc1_bn) #efc2_bn
 
     return sR, eR
