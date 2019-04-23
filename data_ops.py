@@ -55,7 +55,7 @@ class MSCOCODataset:
 
         for i in range(min(config.max_length, len(tokenized_caption))):
             x.append(vocabulary.get_index(tokenized_caption[i]))
-            mask.append[1.0]
+            mask.append(1.0)
 
         if len(x) < config.max_length:
             x.extend([0]*(config.max_length-len(x)))
