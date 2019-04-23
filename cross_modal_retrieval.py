@@ -146,15 +146,24 @@ def main():
                 })
 
             for i, q in enumerate(input_results["shared"]):
-                min_dist = 2.0**32
-                min_dist_id = -1
+                # min_dist = 2.0**32
+                # min_dist_id = -1
+                dist_list = []
                 for j, c in enumerate(choice_results["shared"][i*config.max_choices:(i+1)*config.max_choices]):
                     dist = np.linalg.norm(q-c)
-                    if dist < min_dist:
-                        min_dist = dist
-                        min_dist_id = j
-                if min_dist_id == batch[i]["answer_id"]:
+                    dist_list.append((j, dist))
+                    # if dist < min_dist:
+                    #     min_dist = dist
+                    #     min_dist_id = j
+
+                # if min_dist_id == batch[i]["answer_id"]:
+                #     correct_answers += 1
+                dist_list = sorted(dist_list, key=lambda x:x[1])
+                if dist_list[0][0] == batch[i]["answer_id"]:
                     correct_answers += 1
+                else:
+                    print("\nmy_answer:{}, correct_answer:{}".format(dist_list[0][0], batch[i]["answer_id"]))
+                    print(dist_list)
 
     print("Correctly answered/Total Questions:{}/{}".format(correct_answers, total_qs))
     print("Percentage:{}".format(correct_answers*1.0/total_qs*100.0))
