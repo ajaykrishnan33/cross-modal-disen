@@ -15,6 +15,8 @@ import os
 
 import config
 
+import scipy
+
 from data_ops import MSCOCODataset, TestDataset, Vocabulary
 from tqdm import tqdm
 
@@ -150,7 +152,7 @@ def main():
                 # min_dist_id = -1
                 dist_list = []
                 for j, c in enumerate(choice_results["shared"][i*config.max_choices:(i+1)*config.max_choices]):
-                    dist = np.linalg.norm(q-c)
+                    dist = scipy.spatial.distance.cosine(q,c)
                     dist_list.append((j, dist))
                     # if dist < min_dist:
                     #     min_dist = dist
